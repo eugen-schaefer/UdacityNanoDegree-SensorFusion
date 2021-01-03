@@ -11,24 +11,33 @@ In this course we will be talking about sensor fusion, whch is the process of ta
 **Sensor Fusion** by combing lidar's high resoultion imaging with radar's ability to measure velocity of objects we can get a better understanding of the sorrounding environment than we could using one of the sensors alone.
 
 
-## Installation
+## Dependencies for running locally in Ubuntu
 
-### Ubuntu 
+* sudo apt install build-essential
+  * includes the GCC/g++ compilers and libraries and some other utilities.
+* cmake >= 3.18
+  * [click here for installation instructions](https://cmake.org/install/)
+* sudo apt install libpcl-dev
+  * a library to deal with point clouds
+  
 
-```bash
-$> sudo apt install libpcl-dev
-$> cd ~
-$> git clone https://github.com/udacity/SFND_Lidar_Obstacle_Detection.git
-$> cd SFND_Lidar_Obstacle_Detection
-$> mkdir build && cd build
-$> cmake ..
-$> make
-$> ./environment
+## Compiling and running in Ubuntu
+
+### Compiling
+1. Clone the entire repo as explained [HERE]()
+2. Change directory to UdacityNanoDegree-SensorFusion/Lidar/
+2. Make a build directory in the RoutePlanner directory and change into it: `mkdir build && cd build`
+
+From within the `build` directory, then run `cmake` and `make` as follows:
 ```
-
-#### Build from Source
-
-[PCL Source Github](https://github.com/PointCloudLibrary/pcl)
+cmake ..
+make
+```
+### Running
+The executable will be placed in the `build` directory. From within `build`, you can run the project as follows:
+```
+./environment
+```
 
 ## Origin repository
 This repository had been originally cloned from [here](https://github.com/udacity/SFND_Lidar_Obstacle_Detection.git)
