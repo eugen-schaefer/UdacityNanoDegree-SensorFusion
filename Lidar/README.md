@@ -24,7 +24,7 @@ In this course we will be talking about sensor fusion, whch is the process of ta
 ## Compiling and running in Ubuntu
 
 ### Compiling
-1. Clone the entire repo as explained [HERE]()
+1. Clone the entire repo as explained [HERE](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion#cloning)
 2. Change directory to UdacityNanoDegree-SensorFusion/Lidar/
 2. Make a build directory in the RoutePlanner directory and change into it: `mkdir build && cd build`
 
