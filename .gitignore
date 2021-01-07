@@ -32,7 +32,10 @@
 *.app
 
 # Build folder
-*/build/*
+*build*
 
-MS Visual Studio Code settings
-*/.vscode/*
+# misc
+*.vscode
+*.idea
+*cmake-build-debug
+*clang-format
