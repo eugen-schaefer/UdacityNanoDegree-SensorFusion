@@ -44,7 +44,7 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
     // RENDER OPTIONS
     bool render_scene = false;
     bool render_rays = false;
-    bool render_cloud = false;
+    bool render_cloud = true;
     bool render_segmentation = false;
     bool render_cluster = true;
     std::vector<Car> cars = initHighway(render_scene, viewer);
@@ -81,6 +81,8 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
         point_processor.numPoints(cluster);
         if (render_cluster){
             renderPointCloud(viewer,cluster,"obstCloud"+std::to_string(clusterId),colors[clusterId]);
+            Box box = point_processor.BoundingBox(cluster);
+            renderBox(viewer,box,clusterId);
         }
         ++clusterId;
     }

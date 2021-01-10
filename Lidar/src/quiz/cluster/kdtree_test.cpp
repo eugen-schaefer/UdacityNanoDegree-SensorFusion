@@ -174,5 +174,6 @@ TEST_F(KDTreeTest, Search_Nearby_Neighbors_Down) {
 
   std::vector<int> expected_value{7, 8, 9, 10};
   std::vector<int> actual_value = unit.search({1.0f, -8.0f}, 3.0);
+  std::sort(actual_value.begin(), actual_value.end());
   EXPECT_EQ(expected_value, actual_value);
 }

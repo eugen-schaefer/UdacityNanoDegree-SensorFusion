@@ -42,8 +42,10 @@ list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 add_executable (quizCluster main.cpp cluster.cpp ../../render/render.cpp)
 target_link_libraries (quizCluster ${PCL_LIBRARIES})
 
-add_library(kdtree_lib STATIC cluster.cpp)
 add_executable(kdtree_test kdtree_test.cpp)
-target_link_libraries(kdtree_test gtest_main kdtree_lib ${PCL_LIBRARIES})
+target_link_libraries(kdtree_test gtest_main ${PCL_LIBRARIES})
+
+add_executable(cluster_test cluster_test.cpp)
+target_link_libraries(cluster_test gtest_main kdtree_lib ${PCL_LIBRARIES})
 
 
