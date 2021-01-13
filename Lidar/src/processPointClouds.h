@@ -1,4 +1,4 @@
-// PCL lib Functions for processing point clouds 
+// Functions for processing point clouds, partially from PCL lib and partially self-written
 
 #ifndef PROCESSPOINTCLOUDS_H_
 #define PROCESSPOINTCLOUDS_H_
@@ -23,11 +23,6 @@ template<typename PointT>
 class ProcessPointClouds {
  public:
 
-  //constructor
-  ProcessPointClouds();
-  //deconstructor
-  ~ProcessPointClouds();
-
   void numPoints(typename pcl::PointCloud<PointT>::Ptr cloud);
 
   typename pcl::PointCloud<PointT>::Ptr FilterCloud(typename pcl::PointCloud<PointT>::Ptr cloud,
@@ -40,9 +35,9 @@ class ProcessPointClouds {
                                                                   typename pcl::PointCloud<PointT>::Ptr cloud);
 
   std::pair<typename pcl::PointCloud<PointT>::Ptr,
-            typename pcl::PointCloud<PointT>::Ptr> SegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud,
-                                                                int maxIterations,
-                                                                float distanceThreshold);
+            typename pcl::PointCloud<PointT>::Ptr> PCLSegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud,
+                                                                   int maxIterations,
+                                                                   float distanceThreshold);
 
   std::vector<typename pcl::PointCloud<PointT>::Ptr> Clustering(typename pcl::PointCloud<PointT>::Ptr cloud,
                                                                 float clusterTolerance,

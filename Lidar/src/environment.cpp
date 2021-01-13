@@ -59,7 +59,7 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer) {
   // TODO:: Create point processor
   ProcessPointClouds<pcl::PointXYZ> point_processor;
   std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr>
-      segmentCloud = point_processor.SegmentPlane(
+      segmentCloud = point_processor.PCLSegmentPlane(
       point_cloud, 100, 0.2);
   if (render_segmentation) {
     renderPointCloud(viewer, segmentCloud.first, "obstCloud", Color(1, 0, 0));
@@ -74,7 +74,7 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer) {
   int clusterId = 0;
   std::vector<Color> colors = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
 
-  for (pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : cloudClusters) {
+  for (const pcl::PointCloud<pcl::PointXYZ>::Ptr &cluster : cloudClusters) {
     std::cout << "cluster size ";
     point_processor.numPoints(cluster);
     if (render_cluster) {
@@ -97,9 +97,9 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer, ProcessPointCloud
                                                       Eigen::Vector4f(30, 6.5, 1, 1));
 
   std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr>
-      segmented_cloud = point_processor_I.SegmentPlane(
+      segmented_cloud = point_processor_I.PCLSegmentPlane(
       filtered_cloud, 100, 0.2);
-  //renderPointCloud(viewer, segmented_cloud.first, "obstCloud", Color(1, 0, 0));
+
   renderPointCloud(viewer, segmented_cloud.second, "planeCloud", Color(0, 1, 0));
 
   // Euclidean Clustering with PCL
@@ -111,7 +111,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer, ProcessPointCloud
   std::vector<Color> colors = {Color(1, 0, 0), Color(1, 1, 0), Color(0, 0, 1),
                                Color(1, 0, 0.5), Color(0.2, 0.6, 0.8), Color(0.1, 0.9, .5)};
 
-  for (pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : obstacle_clusters) {
+  for (const pcl::PointCloud<pcl::PointXYZI>::Ptr &cluster : obstacle_clusters) {
     std::cout << "cluster size ";
     point_processor_I.numPoints(cluster);
     renderPointCloud(viewer, cluster, "obstCloud" + std::to_string(clusterId), colors[clusterId % colors.size()]);
@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
   pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
   CameraAngle setAngle = XY;
   initCamera(setAngle, viewer);
+
   //simpleHighway(viewer);
 
   ProcessPointClouds<pcl::PointXYZI> point_processor_I{};

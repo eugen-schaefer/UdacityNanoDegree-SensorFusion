@@ -1,12 +1,8 @@
-/* \author Aaron Brown */
-// Quiz on implementing kd tree
-
 #ifndef KD_TREE_H_
 #define KD_TREE_H_
 
-#include <utility>
-
-#include "../../render/render.h"
+#include <cmath>
+#include <vector>
 
 // Structure to represent node of kd tree
 struct Node {
@@ -25,7 +21,6 @@ struct KdTree {
   KdTree() : root(nullptr) {}
 
   void insert(std::vector<float> point, int id) {
-    // TODO: Fill in this function to insert a new point into the tree
     // the function should create a new node and place correctly with in the
     // root
     Node **current_node = &root;
@@ -52,10 +47,11 @@ struct KdTree {
   void search_helper(Node *node, std::vector<float> target, int tree_depth,
                      float dist_tol, std::vector<int> &ids) {
     if (node != nullptr) {
-      float x_distance{fabs(node->point.at(0) - target.at(0))};
-      float y_distance{fabs(node->point.at(1) - target.at(1))};
+      float x_distance{std::fabs(node->point.at(0) - target.at(0))};
+      float y_distance{std::fabs(node->point.at(1) - target.at(1))};
       if ((x_distance <= dist_tol) && (y_distance <= dist_tol)) {
-        float radius{sqrt(x_distance * x_distance + y_distance * y_distance)};
+        float radius{
+            std::sqrt(x_distance * x_distance + y_distance * y_distance)};
         if (radius <= dist_tol) {
           ids.push_back(node->id);
         }

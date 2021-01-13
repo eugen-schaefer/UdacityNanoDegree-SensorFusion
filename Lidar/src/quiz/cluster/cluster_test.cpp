@@ -1,5 +1,7 @@
 #include "cluster.h"
 
+#include <algorithm>
+
 #include "gtest/gtest.h"
 #include "kdtree.h"
 

@@ -1,5 +1,7 @@
 #include "kdtree.h"
 
+#include <algorithm>
+
 #include "gtest/gtest.h"
 
 struct KDTreeTest : public ::testing::Test {

@@ -39,8 +39,8 @@ add_definitions(${PCL_DEFINITIONS})
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
 
-add_executable (quizCluster main.cpp cluster.cpp ../../render/render.cpp)
-target_link_libraries (quizCluster ${PCL_LIBRARIES})
+add_executable (ClusterDemo main.cpp cluster.cpp ../../render/render.cpp)
+target_link_libraries (ClusterDemo ${PCL_LIBRARIES})
 
 add_executable(kdtree_test kdtree_test.cpp)
 target_link_libraries(kdtree_test gtest_main ${PCL_LIBRARIES})
