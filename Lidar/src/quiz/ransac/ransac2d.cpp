@@ -2,7 +2,7 @@
 
 #include <random>
 
-std::unordered_set<int> Ransac(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
+std::unordered_set<int> Ransac(const pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
                                int maxIterations, float distanceTol) {
   std::unordered_set<int> inliers_result;
   std::unordered_set<int> temp_inliers_result;

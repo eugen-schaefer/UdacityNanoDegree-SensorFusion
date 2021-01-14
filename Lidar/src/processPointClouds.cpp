@@ -4,6 +4,7 @@
 #define PROCESS_POINT_COUDS_H_
 
 #include "processPointClouds.h"
+#include "quiz/ransac/ransac3d.cpp"
 
 template<typename PointT>
 void ProcessPointClouds<PointT>::numPoints(typename pcl::PointCloud<PointT>::Ptr cloud) {
@@ -126,7 +127,40 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr,
   return segResult;
 }
 
+template<typename PointT>
+std::pair<typename pcl::PointCloud<PointT>::Ptr,
+          typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::StudentSegmentPlane(typename pcl::PointCloud<
+    PointT>::Ptr cloud, int maxIterations, float distanceThreshold) {
 
+  // Time segmentation process
+  auto startTime = std::chrono::steady_clock::now();
+  std::unordered_set<int> inliers{};
+
+  // TODO(Eugen): return erlier in case of empty cluster
+  if (!cloud->empty()) {
+    inliers = RansacPlane<PointT>(cloud, maxIterations, distanceThreshold);
+  }
+
+  typename pcl::PointCloud<PointT>::Ptr cloud_inliers(new pcl::PointCloud<PointT>());
+  typename pcl::PointCloud<PointT>::Ptr cloud_outliers(new pcl::PointCloud<PointT>());
+
+  for (int index = 0; index < cloud->points.size(); index++) {
+    auto point = cloud->points[index];
+    if (inliers.count(index))
+      cloud_inliers->points.push_back(point);
+    else
+      cloud_outliers->points.push_back(point);
+  }
+
+  auto endTime = std::chrono::steady_clock::now();
+  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+  std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
+
+  std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr>
+      segmentation_result(cloud_outliers, cloud_inliers);
+
+  return segmentation_result;
+}
 
 template<typename PointT>
 std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<

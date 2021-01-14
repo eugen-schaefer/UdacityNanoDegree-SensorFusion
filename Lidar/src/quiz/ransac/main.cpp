@@ -6,7 +6,7 @@
 #include "../../processPointClouds.cpp"
 #include "../../render/render.h"
 
-pcl::visualization::PCLVisualizer::Ptr initScene(const std::string& name) {
+pcl::visualization::PCLVisualizer::Ptr initScene(const std::string &name) {
   pcl::visualization::PCLVisualizer::Ptr viewer(
       new pcl::visualization::PCLVisualizer(name));
   viewer->setBackgroundColor(0, 0, 0);
@@ -22,8 +22,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData2D() {
   // Add inliers
   float scatter = 0.6;
   for (int i = -5; i < 5; i++) {
-    double rx = 2 * (((double)rand() / (RAND_MAX)) - 0.5);
-    double ry = 2 * (((double)rand() / (RAND_MAX)) - 0.5);
+    double rx = 2 * (((double) rand() / (RAND_MAX)) - 0.5);
+    double ry = 2 * (((double) rand() / (RAND_MAX)) - 0.5);
     pcl::PointXYZ point;
     point.x = i + scatter * rx;
     point.y = i + scatter * ry;
@@ -34,8 +34,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData2D() {
   // Add outliers
   int numOutliers = 10;
   while (numOutliers--) {
-    double rx = 2 * (((double)rand() / (RAND_MAX)) - 0.5);
-    double ry = 2 * (((double)rand() / (RAND_MAX)) - 0.5);
+    double rx = 2 * (((double) rand() / (RAND_MAX)) - 0.5);
+    double ry = 2 * (((double) rand() / (RAND_MAX)) - 0.5);
     pcl::PointXYZ point;
     point.x = 5 * rx;
     point.y = 5 * ry;
@@ -56,7 +56,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData3D() {
 
 int main() {
   // ************** Toggle here between 2D and 3D clustering *******************
-  bool is_rendering_2D{true};  // true: 2D rendering, false: 3D rendering
+  bool is_rendering_2D{};  // true: 2D rendering, false: 3D rendering
 
   pcl::visualization::PCLVisualizer::Ptr viewer;
   std::unordered_set<int> inliers{};
@@ -81,7 +81,7 @@ int main() {
     // TODO: Change the max iteration and distance tolerance arguments for
     // RansacPlane function
     auto startTime = std::chrono::steady_clock::now();
-    inliers = RansacPlane(cloud, 50, 0.2f);
+    inliers = RansacPlane<pcl::PointXYZ>(cloud, 50, 0.2f);
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
         endTime - startTime);

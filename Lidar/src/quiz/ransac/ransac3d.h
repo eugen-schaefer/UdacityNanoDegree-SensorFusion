@@ -5,8 +5,9 @@
 
 #include <unordered_set>
 
+template<typename PointT>
 std::unordered_set<int> RansacPlane(
-    const pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, int maxIterations,
+    const typename pcl::PointCloud<PointT>::Ptr &cloud, int maxIterations,
     float distanceTol);
 
 #endif  // PLAYBACK_RANSAC3D_H

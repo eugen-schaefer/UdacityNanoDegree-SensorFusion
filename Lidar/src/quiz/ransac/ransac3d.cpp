@@ -2,10 +2,11 @@
 
 #include <random>
 
+template<typename PointT>
 std::unordered_set<int> RansacPlane(
-    const pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, int maxIterations,
+    const typename pcl::PointCloud<PointT>::Ptr &cloud, int maxIterations,
     float distanceTol) {
-  std::unordered_set<int> inliersResult;
+  std::unordered_set<int> inliers_result;
   std::unordered_set<int> temp_inliers_result;
   srand(time(NULL));
 
@@ -43,17 +44,17 @@ std::unordered_set<int> RansacPlane(
       auto point = cloud->points.at(j);
       // Measure distance between every point and fitted plane
       float d{fabs(A * point.x + B * point.y + C * point.z + D) /
-              std::sqrt(A * A + B * B + C * C)};
+          std::sqrt(A * A + B * B + C * C)};
       // If distance is smaller than threshold count it as inlier
       if (d < distanceTol) {
         temp_inliers_result.insert(j);
       }
     }
 
-    if (temp_inliers_result.size() > inliersResult.size()) {
-      inliersResult = temp_inliers_result;
+    if (temp_inliers_result.size() > inliers_result.size()) {
+      inliers_result = temp_inliers_result;
     }
   }
   // Return indicies of inliers from fitted plane with most inliers
-  return inliersResult;
+  return inliers_result;
 }
