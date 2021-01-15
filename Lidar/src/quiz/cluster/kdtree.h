@@ -25,9 +25,10 @@ struct KdTree {
     // root
     Node **current_node = &root;
     int tree_depth{};
+    int dimension{static_cast<int>(point.size())};
     while (*current_node != nullptr) {
-      int lookup_index = tree_depth % 2;
-      if (point.at(lookup_index) < (*current_node)->point.at(lookup_index)) {
+      int lookup_index = tree_depth % dimension;
+      if (point[lookup_index] < (*current_node)->point[lookup_index]) {
         current_node = &((*current_node)->left);
       } else {
         current_node = &((*current_node)->right);
@@ -47,17 +48,33 @@ struct KdTree {
   void search_helper(Node *node, std::vector<float> target, int tree_depth,
                      float dist_tol, std::vector<int> &ids) {
     if (node != nullptr) {
-      float x_distance{std::fabs(node->point.at(0) - target.at(0))};
-      float y_distance{std::fabs(node->point.at(1) - target.at(1))};
-      if ((x_distance <= dist_tol) && (y_distance <= dist_tol)) {
-        float radius{
-            std::sqrt(x_distance * x_distance + y_distance * y_distance)};
-        if (radius <= dist_tol) {
-          ids.push_back(node->id);
+      int dimension{static_cast<int>(target.size())};
+      if (dimension == 2) {
+        float x_distance{std::fabs(node->point[0] - target[0])};
+        float y_distance{std::fabs(node->point[1] - target[1])};
+        if ((x_distance <= dist_tol) && (y_distance <= dist_tol)) {
+          float radius{
+              std::sqrt(x_distance * x_distance + y_distance * y_distance)};
+          if (radius <= dist_tol) {
+            ids.push_back(node->id);
+          }
+        }
+      } else if (dimension == 3) {
+        float x_distance{std::fabs(node->point[0] - target[0])};
+        float y_distance{std::fabs(node->point[1] - target[1])};
+        float z_distance{std::fabs(node->point[2] - target[2])};
+        if ((x_distance <= dist_tol) && (y_distance <= dist_tol) &&
+            (z_distance <= dist_tol)) {
+          float radius{std::sqrt(x_distance * x_distance +
+                                 y_distance * y_distance +
+                                 z_distance * z_distance)};
+          if (radius <= dist_tol) {
+            ids.push_back(node->id);
+          }
         }
       }
 
-      int lookup_index = tree_depth % 2;
+      int lookup_index = tree_depth % dimension;
       if ((target[lookup_index] - dist_tol) <= node->point.at(lookup_index)) {
         search_helper(node->left, target, tree_depth + 1, dist_tol, ids);
       }
