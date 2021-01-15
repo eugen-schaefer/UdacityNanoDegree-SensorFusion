@@ -67,9 +67,10 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer) {
   }
 
 
-  // Euclidean Clustering with PCL
-  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloudClusters = point_processor.Clustering(segmentCloud.first, 1.0,
-                                                                                              3, 30);
+  // Euclidean PCLClustering with PCL
+  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloudClusters =
+      point_processor.PCLClustering(segmentCloud.first, 1.0,
+                                    3, 30);
 
   int clusterId = 0;
   std::vector<Color> colors = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
@@ -96,16 +97,23 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer, ProcessPointCloud
   auto filtered_cloud = point_processor_I.FilterCloud(input_cloud, 0.05f, Eigen::Vector4f(-10, -5, -2, 1),
                                                       Eigen::Vector4f(30, 6.5, 1, 1));
 
+//  std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr>
+//      segmented_cloud = point_processor_I.PCLSegmentPlane(
+//      filtered_cloud, 100, 0.2);
+
   std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr>
-      segmented_cloud = point_processor_I.PCLSegmentPlane(
+      segmented_cloud = point_processor_I.StudentSegmentPlane(
       filtered_cloud, 100, 0.2);
 
   renderPointCloud(viewer, segmented_cloud.second, "planeCloud", Color(0, 1, 0));
 
-  // Euclidean Clustering with PCL
-  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters = point_processor_I.Clustering(
-      segmented_cloud.first, 0.5,
-      50, 20000);
+  // Euclidean Clustering - PCL version
+//  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters = point_processor_I.PCLClustering(
+//      segmented_cloud.first, 0.5, 50, 20000);
+
+  // Euclidean Clustering - student version
+  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters = point_processor_I.StudentClustering(
+      segmented_cloud.first, 0.5);
 
   int clusterId = 0;
   std::vector<Color> colors = {Color(1, 0, 0), Color(1, 1, 0), Color(0, 0, 1),
@@ -161,8 +169,6 @@ int main(int argc, char **argv) {
   std::vector<boost::filesystem::path> stream = point_processor_I.streamPcd("../src/sensors/data/pcd/data_1");
   auto streamIterator = stream.begin();
   pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud;
-
-  cityBlock(viewer, point_processor_I, input_cloud);
 
   while (!viewer->wasStopped()) {
     // Clear viewer

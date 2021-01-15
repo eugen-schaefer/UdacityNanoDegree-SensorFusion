@@ -46,10 +46,13 @@ class ProcessPointClouds {
                                                                        int maxIterations,
                                                                        float distanceThreshold);
 
-  std::vector<typename pcl::PointCloud<PointT>::Ptr> Clustering(typename pcl::PointCloud<PointT>::Ptr cloud,
-                                                                float clusterTolerance,
-                                                                int minSize,
-                                                                int maxSize);
+  std::vector<typename pcl::PointCloud<PointT>::Ptr> PCLClustering(typename pcl::PointCloud<PointT>::Ptr cloud,
+                                                                   float clusterTolerance,
+                                                                   int minSize,
+                                                                   int maxSize);
+
+  std::vector<typename pcl::PointCloud<PointT>::Ptr> StudentClustering(typename pcl::PointCloud<PointT>::Ptr cloud,
+                                                                       float clusterTolerance);
 
   Box BoundingBox(typename pcl::PointCloud<PointT>::Ptr cluster);
 

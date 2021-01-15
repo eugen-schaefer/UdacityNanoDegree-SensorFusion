@@ -17,8 +17,13 @@ list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 include_directories(src/quiz/cluster)
 include_directories(src/quiz/ransac)
 
-add_executable (environment src/environment.cpp src/render/render.cpp src/processPointClouds.cpp src/quiz/ransac/ransac3d.cpp)
-target_link_libraries (environment ${PCL_LIBRARIES})
+add_executable(environment
+               src/environment.cpp
+               src/render/render.cpp
+               src/quiz/cluster/cluster.cpp
+               src/processPointClouds.cpp
+               src/quiz/ransac/ransac3d.cpp)
+target_link_libraries(environment ${PCL_LIBRARIES})
 
 
 
