@@ -5,8 +5,6 @@
 std::vector<std::vector<int>> euclideanCluster(
     const std::vector<std::vector<float>> &points, KdTree *tree,
     float distanceTol) {
-  // TODO: Fill out this function to return list of indices for each cluster
-
   std::vector<std::vector<int>> all_clusters;
   std::vector<int> single_cluster{};
   std::vector<bool> has_been_processed(points.size(), false);
