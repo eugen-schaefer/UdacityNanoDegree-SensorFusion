@@ -1,6 +1,7 @@
 #ifndef KD_TREE_H_
 #define KD_TREE_H_
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -82,6 +83,38 @@ struct KdTree {
         search_helper(node->right, target, tree_depth + 1, dist_tol, ids);
       }
     }
+  }
+
+  void CreateBalancedKDTree(std::vector<std::vector<float>> points, Node **mount_node,
+              int tree_depth = 0) {
+    static int new_id{0};
+    if (points.size() < 2) {
+      if (points.size() == 1) {
+        *mount_node = new Node(points[0], new_id++);
+      }
+      return;
+    }
+
+    int dimension{static_cast<int>(points[0].size())};
+
+    std::sort(
+        points.begin(), points.end(),
+        [tree_depth, dimension](std::vector<float> a, std::vector<float> b) {
+          return (a[tree_depth % dimension] < b[tree_depth % dimension]);
+        });
+    unsigned int median_index{
+        (static_cast<unsigned int>(points.size()) + 1) / 2 - 1};
+    *mount_node = new Node(points[median_index], new_id++);
+
+    std::vector<std::vector<float>> left_branch{};
+    std::copy(points.begin(), points.begin() + median_index,
+              back_inserter(left_branch));
+    CreateBalancedKDTree(left_branch, &(*mount_node)->left, tree_depth + 1);
+
+    std::vector<std::vector<float>> right_branch{};
+    std::copy(points.end() - median_index, points.end(),
+              back_inserter(right_branch));
+    CreateBalancedKDTree(right_branch, &(*mount_node)->right, tree_depth + 1);
   }
 };
 
