@@ -358,6 +358,7 @@ TEST_F(KDTree3DTest,
 
   std::vector<int> expected_value{0, 1, 2, 3};
   std::vector<int> actual_value = unit.search({-6.0f, 7.0f, 3.0f}, 3.0f);
+  std::sort(actual_value.begin(), actual_value.end());
   EXPECT_EQ(expected_value, actual_value);
 }
 
@@ -366,6 +367,7 @@ TEST_F(KDTree3DTest, Search_Nearby_Neighbors_UpperLeftCorner_In_Balanced_Tree) {
 
   std::vector<int> expected_value{0, 1, 2, 3};
   std::vector<int> actual_value = unit.search({-6.0f, 7.0f, 3.0f}, 3.0f);
+  std::sort(actual_value.begin(), actual_value.end());
   EXPECT_EQ(expected_value, actual_value);
 }
 
@@ -377,6 +379,7 @@ TEST_F(KDTree3DTest,
 
   std::vector<int> expected_value{4, 5, 6};
   std::vector<int> actual_value = unit.search({7.5f, 6.0f, -26.0f}, 3.0f);
+  std::sort(actual_value.begin(), actual_value.end());
   EXPECT_EQ(expected_value, actual_value);
 }
 
@@ -385,6 +388,7 @@ TEST_F(KDTree3DTest,
   unit.CreateBalancedKDTree(points_3d_for_unbalanced_tree, &unit.root);
   std::vector<int> expected_value{4, 5, 6};
   std::vector<int> actual_value = unit.search({7.5f, 6.0f, -26.0f}, 3.0f);
+  std::sort(actual_value.begin(), actual_value.end());
   EXPECT_EQ(expected_value, actual_value);
 }
 
@@ -419,10 +423,10 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_One_Point) {
   unit.CreateBalancedKDTree(points, &unit.root);
   EXPECT_FALSE(unit.root == nullptr);
   if (unit.root != nullptr) {
-    EXPECT_EQ(0, unit.root->id);
     EXPECT_FLOAT_EQ(points[0][0], unit.root->point.at(0));
     EXPECT_FLOAT_EQ(points[0][1], unit.root->point.at(1));
     EXPECT_FLOAT_EQ(points[0][2], unit.root->point.at(2));
+    EXPECT_EQ(0, unit.root->id);
   }
 }
 
@@ -452,22 +456,33 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
   unit.CreateBalancedKDTree(points_3d_for_unbalanced_tree, &unit.root);
 
   std::vector<float> level0_root{0.2f, -7.1f, 45.6f};
+  int level0_root_id{7};
 
   std::vector<float> level1_left_root{-6.2f, 7.f, 3.1};
+  int level1_left_root_id{0};
   std::vector<float> level1_right_root{8.f, 5.3f, -28.1};
+  int level1_right_root_id{5};
 
   std::vector<float> level2_left_left_root{-5.7f, 6.3f, 3.4f};
+  int level2_left_left_root_id{3};
   std::vector<float> level2_left_right_root{-6.3f, 8.4f, 2.8f};
+  int level2_left_right_root_id{1};
   std::vector<float> level2_right_left_root{1.7f, -6.9f, 43.f};
+  int level2_right_left_root_id{8};
   std::vector<float> level2_right_right_root{7.2f, 7.1f, -27.3f};
+  int level2_right_right_root_id{6};
 
   std::vector<float> level3_left_left_right_leaf{-1.2f, -7.2f, 44.1f};
+  int level3_left_left_right_leaf_id{9};
 
   std::vector<float> level3_left_right_right_leaf{-5.2f, 7.1f, 4.f};
+  int level3_left_right_right_leaf_id{2};
 
   std::vector<float> level3_right_left_right_leaf{2.2f, -8.9f, 44.8f};
+  int level3_right_left_right_leaf_id{10};
 
   std::vector<float> level3_right_right_right_leaf{7.2f, 6.1f, -25.8f};
+  int level3_right_right_right_leaf_id{4};
 
   EXPECT_FALSE(unit.root == nullptr);
   if (unit.root != nullptr) {
@@ -475,6 +490,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
     EXPECT_FLOAT_EQ(level0_root.at(0), unit.root->point.at(0));
     EXPECT_FLOAT_EQ(level0_root.at(1), unit.root->point.at(1));
     EXPECT_FLOAT_EQ(level0_root.at(2), unit.root->point.at(2));
+    EXPECT_EQ(level0_root_id, unit.root->id);
     // EXPECT_EQ(0, unit.root->id);
     EXPECT_FALSE(unit.root->left == nullptr);
     EXPECT_FALSE(unit.root->right == nullptr);
@@ -483,6 +499,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
       EXPECT_FLOAT_EQ(level1_left_root.at(0), unit.root->left->point.at(0));
       EXPECT_FLOAT_EQ(level1_left_root.at(1), unit.root->left->point.at(1));
       EXPECT_FLOAT_EQ(level1_left_root.at(2), unit.root->left->point.at(2));
+      EXPECT_EQ(level1_left_root_id, unit.root->left->id);
       // EXPECT_EQ(1, unit.root->left->id);
       EXPECT_FALSE(unit.root->left->left == nullptr);
       EXPECT_FALSE(unit.root->left->right == nullptr);
@@ -494,6 +511,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                         unit.root->left->left->point.at(1));
         EXPECT_FLOAT_EQ(level2_left_left_root.at(2),
                         unit.root->left->left->point.at(2));
+        EXPECT_EQ(level2_left_left_root_id, unit.root->left->left->id);
         // EXPECT_EQ(id4, unit.root->left->left->id);
         EXPECT_TRUE(unit.root->left->left->left == nullptr);
         EXPECT_FALSE(unit.root->left->left->right == nullptr);
@@ -505,6 +523,8 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                           unit.root->left->left->right->point.at(1));
           EXPECT_FLOAT_EQ(level3_left_left_right_leaf.at(2),
                           unit.root->left->left->right->point.at(2));
+          EXPECT_EQ(level3_left_left_right_leaf_id,
+                    unit.root->left->left->right->id);
           // EXPECT_EQ(id4, unit.root->left->left->right->id);
           EXPECT_TRUE(unit.root->left->left->right->left == nullptr);
           EXPECT_TRUE(unit.root->left->left->right->right == nullptr);
@@ -518,6 +538,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                         unit.root->left->right->point.at(1));
         EXPECT_FLOAT_EQ(level2_left_right_root.at(2),
                         unit.root->left->right->point.at(2));
+        EXPECT_EQ(level2_left_right_root_id, unit.root->left->right->id);
         // EXPECT_EQ(id4, unit.root->left->right->id);
         EXPECT_TRUE(unit.root->left->right->left == nullptr);
         EXPECT_FALSE(unit.root->left->right->right == nullptr);
@@ -530,6 +551,8 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                           unit.root->left->right->right->point.at(1));
           EXPECT_FLOAT_EQ(level3_left_right_right_leaf.at(2),
                           unit.root->left->right->right->point.at(2));
+          EXPECT_EQ(level3_left_right_right_leaf_id,
+                    unit.root->left->right->right->id);
           // EXPECT_EQ(id4, unit.root->left->right->left->id);
           EXPECT_TRUE(unit.root->left->right->right->left == nullptr);
           EXPECT_TRUE(unit.root->left->right->right->right == nullptr);
@@ -541,6 +564,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
       EXPECT_FLOAT_EQ(level1_right_root.at(0), unit.root->right->point.at(0));
       EXPECT_FLOAT_EQ(level1_right_root.at(1), unit.root->right->point.at(1));
       EXPECT_FLOAT_EQ(level1_right_root.at(2), unit.root->right->point.at(2));
+      EXPECT_EQ(level1_right_root_id, unit.root->right->id);
       // EXPECT_EQ(2, unit.root->right->id);
       EXPECT_FALSE(unit.root->right->left == nullptr);
       EXPECT_FALSE(unit.root->right->right == nullptr);
@@ -552,6 +576,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                         unit.root->right->left->point.at(1));
         EXPECT_FLOAT_EQ(level2_right_left_root.at(2),
                         unit.root->right->left->point.at(2));
+        EXPECT_EQ(level2_right_left_root_id, unit.root->right->left->id);
         // EXPECT_EQ(id4, unit.root->right->left->id);
         EXPECT_TRUE(unit.root->right->left->left == nullptr);
         EXPECT_FALSE(unit.root->right->left->right == nullptr);
@@ -563,6 +588,8 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                           unit.root->right->left->right->point.at(1));
           EXPECT_FLOAT_EQ(level3_right_left_right_leaf.at(2),
                           unit.root->right->left->right->point.at(2));
+          EXPECT_EQ(level3_right_left_right_leaf_id,
+                    unit.root->right->left->right->id);
           // EXPECT_EQ(id5, unit.root->right->left->left->id);
           EXPECT_TRUE(unit.root->right->left->right->left == nullptr);
           EXPECT_TRUE(unit.root->right->left->right->right == nullptr);
@@ -576,6 +603,7 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                         unit.root->right->right->point.at(1));
         EXPECT_FLOAT_EQ(level2_right_right_root.at(2),
                         unit.root->right->right->point.at(2));
+        EXPECT_EQ(level2_right_right_root_id, unit.root->right->right->id);
         // EXPECT_EQ(id4, unit.root->right->right->id);
         EXPECT_TRUE(unit.root->right->right->left == nullptr);
         EXPECT_FALSE(unit.root->right->right->right == nullptr);
@@ -587,6 +615,8 @@ TEST_F(KDTree3DTest, Create_Balanced_3D_Tree_With_Eleven_Points) {
                           unit.root->right->right->right->point.at(1));
           EXPECT_FLOAT_EQ(level3_right_right_right_leaf.at(2),
                           unit.root->right->right->right->point.at(2));
+          EXPECT_EQ(level3_right_right_right_leaf_id,
+                    unit.root->right->right->right->id);
           // EXPECT_EQ(id5, unit.root->right->right->left->id);
           EXPECT_TRUE(unit.root->right->right->right->left == nullptr);
           EXPECT_TRUE(unit.root->right->right->right->right == nullptr);

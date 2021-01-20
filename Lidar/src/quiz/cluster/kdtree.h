@@ -87,22 +87,26 @@ struct KdTree {
 
   void CreateBalancedKDTree(std::vector<std::vector<float>> points,
                             Node **mount_node, int tree_depth = 0) {
-    // ID handling
-    static int new_id{0};
+    // ID handling: At the very begin of tree creating, insert sequential id's
+    // as the D+1 dimension into every point of the cloud
     if (tree_depth == 0) {
-      new_id = 0;  // Reset id in case a new tree is going to be created
+      int id{};
+      for (auto &point : points) {
+        point.push_back(id++);
+      }
     }
 
     bool should_right_branch_be_filled{true};
     bool should_left_branch_be_filled{true};
     if (points.size() < 2) {
       if (points.size() == 1) {
-        *mount_node = new Node(points[0], new_id++);
+        *mount_node = new Node(points[0], static_cast<int>(points[0][3]));
       }
       return;
     }
 
-    int dimension{static_cast<int>(points[0].size())};
+    // minus 1 because of IDs as K+1 dimension
+    int dimension{static_cast<int>(points[0].size()) - 1};
 
     // Determine median and put it as root for the next subtree
     std::sort(
@@ -112,7 +116,8 @@ struct KdTree {
         });
     unsigned int median_index{
         (static_cast<unsigned int>(points.size()) + 1) / 2 - 1};
-    *mount_node = new Node(points[median_index], new_id++);
+    *mount_node = new Node(points[median_index],
+                           static_cast<int>(points[median_index][3]));
 
     // Fill the left branch
     std::vector<std::vector<float>> left_branch{};
