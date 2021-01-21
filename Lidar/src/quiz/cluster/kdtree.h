@@ -12,7 +12,7 @@ struct Node {
   Node *left;
   Node *right;
 
-  Node(std::vector<float> arr, int setId)
+  Node(std::vector<float> &arr, int setId)
       : point(std::move(arr)), id(setId), left(nullptr), right(nullptr) {}
 };
 
@@ -46,7 +46,7 @@ struct KdTree {
     return ids;
   }
 
-  void search_helper(Node *node, std::vector<float> target, int tree_depth,
+  void search_helper(Node *node, std::vector<float> &&target, int tree_depth,
                      float dist_tol, std::vector<int> &ids) {
     if (node != nullptr) {
       int dimension{static_cast<int>(target.size())};
@@ -77,10 +77,10 @@ struct KdTree {
 
       int lookup_index = tree_depth % dimension;
       if ((target[lookup_index] - dist_tol) <= node->point[lookup_index]) {
-        search_helper(node->left, target, tree_depth + 1, dist_tol, ids);
+        search_helper(node->left, std::move(target), tree_depth + 1, dist_tol, ids);
       }
       if ((target[lookup_index] + dist_tol) > node->point[lookup_index]) {
-        search_helper(node->right, target, tree_depth + 1, dist_tol, ids);
+        search_helper(node->right, std::move(target), tree_depth + 1, dist_tol, ids);
       }
     }
   }
@@ -134,7 +134,7 @@ struct KdTree {
       }
     }
     if (should_left_branch_be_filled) {
-      CreateBalancedKDTree(left_branch, &(*mount_node)->left, tree_depth + 1);
+      CreateBalancedKDTree(std::move(left_branch), &(*mount_node)->left, tree_depth + 1);
     }
 
     // Fill the right branch
@@ -146,7 +146,7 @@ struct KdTree {
       } else if (points.size() == 2) {
         right_branch.push_back(points[1]);
       }
-      CreateBalancedKDTree(right_branch, &(*mount_node)->right, tree_depth + 1);
+      CreateBalancedKDTree(std::move(right_branch), &(*mount_node)->right, tree_depth + 1);
     }
   }
 };
