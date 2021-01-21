@@ -55,7 +55,7 @@ TEST_F(Cluster2DTest, EuclideanClusters) {
        });
 
   std::vector<std::vector<int>> actual_values =
-      euclideanCluster(points, &unit, 3.f);
+      euclideanCluster(points, &unit, 3.f, 2);
   EXPECT_EQ(expected_values.size(), actual_values.size());
 
   // Ensure that values in every calculated cluster are sorted in ascending
@@ -107,7 +107,7 @@ TEST_F(Cluster3DTest, EuclideanClusters) {
        });
 
   std::vector<std::vector<int>> actual_values =
-      euclideanCluster(points_3d, &unit, 3.f);
+      euclideanCluster(points_3d, &unit, 3.f, 2);
   EXPECT_EQ(expected_values.size(), actual_values.size());
 
   // Ensure that values in every calculated cluster are sorted in ascending

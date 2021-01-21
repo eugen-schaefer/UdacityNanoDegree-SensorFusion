@@ -5,7 +5,7 @@
 
 std::vector<std::vector<int>> euclideanCluster(
     const std::vector<std::vector<float>> &points, KdTree *tree,
-    float distanceTol);
+    float distanceTol, int min_number_points_in_cluster);
 
 void Proximity(KdTree *kd_tree, const std::vector<std::vector<float>> &points,
                int id, std::vector<bool> &has_been_processed,
