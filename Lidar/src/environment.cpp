@@ -57,18 +57,26 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer) {
   }
 
   // TODO:: Create point processor
+  // segment
+  int maxIter = 100;
+  float distanceThreshold = 0.2;
   ProcessPointClouds<pcl::PointXYZ> point_processor;
   std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr,
             pcl::PointCloud<pcl::PointXYZ>::Ptr>
-      segmentCloud = point_processor.PCLSegmentPlane(point_cloud, 100, 0.2);
+      segmentCloud = point_processor.PCLSegmentPlane(point_cloud, maxIter,
+                                                     distanceThreshold);
   if (render_segmentation) {
     renderPointCloud(viewer, segmentCloud.first, "obstCloud", Color(1, 0, 0));
     renderPointCloud(viewer, segmentCloud.second, "planeCloud", Color(0, 1, 0));
   }
 
+  float clusterTolerance = 1.0;
+  int minClusterSize = 3;
+  int maxClusterSize = 30;
   // Euclidean PCLClustering with PCL
   std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloudClusters =
-      point_processor.PCLClustering(segmentCloud.first, 1.0, 3, 30);
+      point_processor.PCLClustering(segmentCloud.first, clusterTolerance,
+                                    minClusterSize, maxClusterSize);
 
   int clusterId = 0;
   std::vector<Color> colors = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
@@ -86,7 +94,6 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer) {
   }
 }
 
-// void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer)
 void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer,
                ProcessPointClouds<pcl::PointXYZI> &point_processor_I,
                const pcl::PointCloud<pcl::PointXYZI>::Ptr &input_cloud) {
@@ -94,15 +101,22 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer,
   // -----Open 3D viewer and display City Block     -----
   // ----------------------------------------------------
 
-  auto filtered_cloud = point_processor_I.FilterCloud(
-      input_cloud, 0.05f, Eigen::Vector4f(-10, -5, -2, 1),
-      Eigen::Vector4f(30, 6.5, 1, 1));
+  // Filter
+  float filterRes = 0.25;
+  Eigen::Vector4f minPoint(-10, -5, -2, 1);
+  Eigen::Vector4f maxPoint(25, 7, 2, 1);
+  auto filtered_cloud =
+      point_processor_I.FilterCloud(input_cloud, filterRes, minPoint, maxPoint);
 
+  int maxIter = 50;
+  float distanceThreshold = 0.15;
+  // ***********  Segmentation - PCL version *********** //
   //  std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr,
-  //  pcl::PointCloud<pcl::PointXYZI>::Ptr>
+  //            pcl::PointCloud<pcl::PointXYZI>::Ptr>
   //      segmented_cloud = point_processor_I.PCLSegmentPlane(
-  //      filtered_cloud, 100, 0.2);
+  //          filtered_cloud, maxIter, distanceThreshold);
 
+  // ***********  Segmentation - Student version *********** //
   std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr,
             pcl::PointCloud<pcl::PointXYZI>::Ptr>
       segmented_cloud =
@@ -111,12 +125,16 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr &viewer,
   renderPointCloud(viewer, segmented_cloud.second, "planeCloud",
                    Color(0, 1, 0));
 
-  // Euclidean Clustering - PCL version
-  //    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters =
-  //    point_processor_I.PCLClustering(
-  //        segmented_cloud.first, 0.5, 50, 20000);
+  float clusterTolerance = 0.45;
+  int minClusterSize = 10;
+  int maxClusterSize = 500;
 
-  // Euclidean Clustering - student version
+  // ***********  Euclidean Clustering - PCL version *********** //
+  //  std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters =
+  //      point_processor_I.PCLClustering(segmented_cloud.first,
+  //      clusterTolerance, minClusterSize, maxClusterSize);
+
+  // ***********  Euclidean Clustering - Student version *********** //
   std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> obstacle_clusters =
       point_processor_I.StudentClustering(segmented_cloud.first, 0.5, 50);
 
@@ -175,7 +193,7 @@ int main(int argc, char **argv) {
   CameraAngle setAngle = XY;
   initCamera(setAngle, viewer);
 
-  // simpleHighway(viewer);
+  //   simpleHighway(viewer);
 
   ProcessPointClouds<pcl::PointXYZI> point_processor_I{};
 
