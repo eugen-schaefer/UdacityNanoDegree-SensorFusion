@@ -14,6 +14,11 @@ This repo contains lesson-wise exercises and corresponding solutions for Udacity
    - Gradient-based vs. Binary Descriptors
    - Haris Corner Detection
    - Intensity Gradient and Filtering
+     - Useful links:
+        - https://www.allaboutcircuits.com/technical-articles/two-dimensional-convolution-in-image-processing/
+        - http://songho.ca/dsp/convolution/convolution.html
+        - https://computergraphics.stackexchange.com/questions/39/how-is-gaussian-blur-implemented
+       
    - Overview of Popular Keypoint Detectors
 1. Lesson 5: Starter code for "Project: Camera Based 2D Feature Tracking" is available here - https://github.com/udacity/SFND_2D_Feature_Tracking
 1. Lesson 6: Combining Camera and Lidar
@@ -30,8 +35,29 @@ This repo contains lesson-wise exercises and corresponding solutions for Udacity
 * cmake >= 3.18
   * [click here for installation instructions](https://cmake.org/install/)
 * OpenCV >= 4.1
-  * This must be compiled from source using the `-D OPENCV_ENABLE_NONFREE=ON` cmake flag for testing the SIFT and SURF detectors.
-  * The OpenCV 4.1.0 source code can be found [here](https://github.com/opencv/opencv/tree/4.1.0)
+  * Installation steps (inspired from [here](https://docs.opencv.org/master/d7/d9f/tutorial_linux_install.html) and [here](https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/#installing-opencv-from-the-source)):
+    * #### change into some directory, e.g. Downloads/
+      `cd ~/Downloads/`
+    * #### Download and unpack sources for OpenCV
+      `wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip`
+      `unzip opencv.zip`
+    * #### Download and unpack sources for OpenCV's extra modules
+      `wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/master.zip`
+      `unzip opencv_contrib.zip`
+    * #### Build OpenCV, such that it will include the extra modules
+      `cd opencv-master`
+      
+      `mkdir build && cd build`
+      
+      `cmake -D OPENCV_ENABLE_NONFREE=ON -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-master/modules ..`
+      
+      `make -j<n>` # --> n is the number of processor kernels, you can check it via `nproc
+    * #### Install OpenCV
+      `sudo make install`
+  
+
+  * Compiling from source using the `-D OPENCV_ENABLE_NONFREE=ON` cmake flag enables using SIFT and SURF detectors.
+  * For general information about openCV see [here](https://github.com/opencv/opencv/tree/4.1.0).
 
 
 ## C. Build Instructions

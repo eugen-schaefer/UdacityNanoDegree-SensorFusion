@@ -20,5 +20,5 @@ target_link_libraries (gaussian_smoothing ${OpenCV_LIBRARIES})
 add_executable (gradient_sobel src/gradient_sobel.cpp)
 target_link_libraries (gradient_sobel ${OpenCV_LIBRARIES})
 
-add_executable (magnitude_sobel src/magnitude_sobel.cpp)
-target_link_libraries (magnitude_sobel ${OpenCV_LIBRARIES})
+#add_executable (magnitude_sobel src/magnitude_sobel.cpp)
+#target_link_libraries (magnitude_sobel ${OpenCV_LIBRARIES})
