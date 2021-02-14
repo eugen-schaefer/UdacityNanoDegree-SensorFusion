@@ -18,12 +18,17 @@
 
 #include "dataStructures.h"
 
-void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis = false);
-void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis = false);
+void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsFAST(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsBRISK(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsORB(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsAKAZE(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
+void detKeypointsSIFT(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
 void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints,
                         cv::Mat &img,
                         std::string detectorType,
-                        bool bVis = false);
+                        bool is_visualization = false);
 void descKeypoints(std::vector<cv::KeyPoint> &keypoints,
                    cv::Mat &img,
                    cv::Mat &descriptors,

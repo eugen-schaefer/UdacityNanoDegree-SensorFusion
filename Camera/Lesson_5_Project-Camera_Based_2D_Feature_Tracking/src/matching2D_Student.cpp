@@ -3,6 +3,14 @@
 
 using namespace std;
 
+void visualize_detector_results(string window_name, std::vector<cv::KeyPoint> &keypoints, cv::Mat &img) {
+  cv::Mat visImage = img.clone();
+  cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+  cv::namedWindow(window_name, 6);
+  imshow(window_name, visImage);
+  cv::waitKey(0);
+}
+
 // Find best matches for keypoints in two camera images based on several matching methods
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
                       std::vector<cv::KeyPoint> &kPtsRef,
@@ -57,7 +65,7 @@ void descKeypoints(vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &descr
 }
 
 // Detect keypoints in image using the traditional Shi-Thomasi detector
-void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis) {
+void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
   // compute detector parameters based on image size
   int blockSize =
       4;       //  size of an average block for computing a derivative covariation matrix over each pixel neighborhood
@@ -85,12 +93,115 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
   cout << "Shi-Tomasi detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
 
   // visualize results
-  if (bVis) {
-    cv::Mat visImage = img.clone();
-    cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    string windowName = "Shi-Tomasi Corner Detector Results";
-    cv::namedWindow(windowName, 6);
-    imshow(windowName, visImage);
-    cv::waitKey(0);
+  if (is_visualization) {
+    visualize_detector_results("Shi-Tomasi Corner Detector Results", keypoints, img);
+  }
+
+}
+
+void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  // Detector parameters
+  int blockSize = 2;     // for every pixel, a blockSize × blockSize neighborhood is considered
+  int apertureSize = 3;  // aperture parameter for Sobel operator (must be odd)
+  int minResponse = 100; // minimum value for a corner in the 8bit scaled response matrix
+  double k = 0.04;       // Harris parameter (see equation for details)
+
+  cv::Mat dst = cv::Mat::zeros(img.size(), CV_32FC1);
+  cv::cornerHarris(img, dst, blockSize, apertureSize, k);
+
+  cv::Mat dst_norm, dst_norm_scaled;
+  cv::normalize(dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
+  cv::convertScaleAbs(dst_norm, dst_norm_scaled);
+
+  // Look for prominent corners and instantiate keypoints
+  double maxOverlap = 0.0; // max. permissible overlap between two features in %, used during non-maxima suppression
+  for (int row_idx{0}; row_idx < dst_norm.rows; row_idx++) {
+    for (int col_idx{0}; col_idx < dst_norm.cols; col_idx++) {
+      int response = static_cast<int>(dst_norm.at<float>(row_idx, col_idx));
+      if (response > minResponse) { // // only store points above a threshold
+        cv::KeyPoint newKeyPoint;
+        newKeyPoint.pt = cv::Point2f(row_idx, col_idx); //TODO(Eugen): check the order of col/row
+        newKeyPoint.size = static_cast<float>(2 * apertureSize);
+        newKeyPoint.response = static_cast<float>(response);
+
+        // perform non-maximum suppression (NMS) in local neighbourhood around new key point
+        bool is_overlap{};
+        for (auto &keypoint : keypoints) {
+          double kptOverlap = cv::KeyPoint::overlap(newKeyPoint, keypoint);
+          if (kptOverlap > maxOverlap) {
+            if (newKeyPoint.response > keypoint.response) {
+              keypoint = newKeyPoint;
+              is_overlap = true;
+              break;
+            }
+          }
+        }
+        // only add new key point if no overlap has been found in previous NMS
+        if (!is_overlap) {
+          keypoints.push_back(newKeyPoint);
+        }
+      }
+    } // eof loop over cols
+  } // eof loop over rows
+
+  // visualize results    
+  if (is_visualization) {
+    visualize_detector_results("Harris Corner Detector Results", keypoints, img);
+  }
+}
+
+void detKeypointsFAST(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  // difference between intensity of the central pixel and pixels of a circle around this pixel
+  int threshold = 30;
+  bool is_non_maxima_suppression{true};
+  cv::FastFeatureDetector::DetectorType type = cv::FastFeatureDetector::TYPE_9_16; // TYPE_9_16, TYPE_7_12, TYPE_5_8
+  cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create(threshold, is_non_maxima_suppression, type);
+
+  detector->detect(img, keypoints);
+
+  // visualize results
+  if (is_visualization) {
+    visualize_detector_results("FAST Detector Results", keypoints, img);
+  }
+}
+
+void detKeypointsBRISK(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  cv::Ptr<cv::FeatureDetector> detector = cv::BRISK::create();
+  detector->detect(img, keypoints);
+
+  // visualize results
+  if (is_visualization) {
+    visualize_detector_results("BRISK Detector Results", keypoints, img);
+  }
+}
+
+void detKeypointsORB(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
+  detector->detect(img, keypoints);
+
+  // visualize results
+  if (is_visualization) {
+    visualize_detector_results("ORB Detector Results", keypoints, img);
+  }
+}
+
+void detKeypointsAKAZE(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  cv::Mat descriptor;
+  cv::Ptr<cv::AKAZE> akaze = cv::AKAZE::create();
+  akaze->detectAndCompute(img, cv::noArray(), keypoints, descriptor);
+
+  // visualize results
+  if (is_visualization) {
+    visualize_detector_results("AKAZE Detector Results", keypoints, img);
+  }
+}
+
+void detKeypointsSIFT(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization) {
+  cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
+  detector->detect(img, keypoints);
+
+  // visualize results
+  if (is_visualization) {
+    visualize_detector_results("SIFT Detector Results", keypoints, img);
   }
 }

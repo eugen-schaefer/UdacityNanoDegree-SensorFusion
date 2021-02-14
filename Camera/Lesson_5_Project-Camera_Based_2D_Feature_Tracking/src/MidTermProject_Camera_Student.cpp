@@ -72,16 +72,38 @@ int main(int argc, const char *argv[]) {
 
     // extract 2D keypoints from current image
     vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-    string detectorType = "SHITOMASI";
+
+    enum class DetectorType {
+      SHITOMASI,
+      HARRIS,
+      FAST,
+      BRISK,
+      ORB,
+      AKAZE,
+      SIFT
+    };
+
+    DetectorType detector_type{DetectorType::SHITOMASI};
 
     //// STUDENT ASSIGNMENT
     //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
     //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
-
-    if (detectorType.compare("SHITOMASI") == 0) {
-      detKeypointsShiTomasi(keypoints, imgGray, false);
-    } else {
-      //...
+    switch (detector_type) {
+      case DetectorType::SHITOMASI :detKeypointsShiTomasi(keypoints, imgGray, false);
+        break;
+      case DetectorType::HARRIS:detKeypointsHarris(keypoints, imgGray, false);
+        break;
+      case DetectorType::FAST:detKeypointsFAST(keypoints, imgGray, false);
+        break;
+      case DetectorType::BRISK:detKeypointsBRISK(keypoints, imgGray, false);
+        break;
+      case DetectorType::ORB:detKeypointsORB(keypoints, imgGray, false);
+        break;
+      case DetectorType::AKAZE:detKeypointsAKAZE(keypoints, imgGray, false);
+        break;
+      case DetectorType::SIFT:detKeypointsSIFT(keypoints, imgGray, false);
+        break;
+      default:break;
     }
     //// EOF STUDENT ASSIGNMENT
 
@@ -101,9 +123,8 @@ int main(int argc, const char *argv[]) {
     bool bLimitKpts = false;
     if (bLimitKpts) {
       int maxKeypoints = 50;
-
-      if (detectorType.compare("SHITOMASI")
-          == 0) { // there is no response info, so keep the first 50 as they are sorted in descending quality order
+      // there is no response info, so keep the first 50 as they are sorted in descending quality order
+      if (detector_type == DetectorType::SHITOMASI) {
         keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
       }
       cv::KeyPointsFilter::retainBest(keypoints, maxKeypoints);
