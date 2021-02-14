@@ -63,7 +63,7 @@ This repo contains lesson-wise exercises and corresponding solutions for Udacity
 ## C. Build Instructions
 1. Clone the entire repo as explained [HERE](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion#cloning)
 2. Change directory to UdacityNanoDegree-SensorFusion/Camera/
-3. Go to the top level directory for an exercise, and run the following commands on your terminal:
+3. Go to the top level directory for an exercise where you see src folder and CMakeLists.txt, and run the following commands on your terminal:
 ```
 mkdir build && cd build
 cmake ..
