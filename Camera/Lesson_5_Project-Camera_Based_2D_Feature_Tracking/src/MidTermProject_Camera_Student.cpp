@@ -109,14 +109,18 @@ int main(int argc, const char *argv[]) {
 
     //// STUDENT ASSIGNMENT
     //// TASK MP.3 -> only keep keypoints on the preceding vehicle
-
-    // only keep keypoints on the preceding vehicle
-    bool bFocusOnVehicle = true;
-    cv::Rect vehicleRect(535, 180, 180, 150);
-    if (bFocusOnVehicle) {
-      // ...
+    float topleft_corner_x = 535.f, topleft_corner_y = 180.f, width = 180.f, height = 150.f;
+    cv::Rect bounding_box(topleft_corner_x, topleft_corner_y, width, height);
+    bool is_focus_on_leading_vehicle{true};
+    if (is_focus_on_leading_vehicle) {
+      for (auto it = keypoints.begin(); it != keypoints.end();) {
+        if (!bounding_box.contains(it->pt)) {
+          it = keypoints.erase(it);
+        } else {
+          ++it;
+        }
+      }
     }
-
     //// EOF STUDENT ASSIGNMENT
 
     // optional : limit number of keypoints (helpful for debugging and learning)
