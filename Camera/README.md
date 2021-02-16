@@ -35,7 +35,7 @@ This repo contains lesson-wise exercises and corresponding solutions for Udacity
 * cmake >= 3.18
   * [click here for installation instructions](https://cmake.org/install/)
 * OpenCV >= 4.1
-  * Installation steps (inspired from [here](https://docs.opencv.org/master/d7/d9f/tutorial_linux_install.html) and [here](https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/#installing-opencv-from-the-source)):
+  * Installation steps (inspired from [here](https://docs.opencv.org/master/d7/d9f/tutorial_linux_install.html), [here](https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/#installing-opencv-from-the-source) and [here](https://learnopencv.com/install-opencv-4-on-ubuntu-18-04/)):
     * #### change into some directory, e.g. Downloads/
       `cd ~/Downloads/`
     * #### Download and unpack sources for OpenCV

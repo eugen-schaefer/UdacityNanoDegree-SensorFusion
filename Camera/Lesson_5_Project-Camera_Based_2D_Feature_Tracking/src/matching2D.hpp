@@ -18,6 +18,25 @@
 
 #include "dataStructures.h"
 
+enum class DetectorType {
+  AKAZE,
+  BRISK,
+  FAST,
+  HARRIS,
+  ORB,
+  SHITOMASI,
+  SIFT
+};
+
+enum class DescriptorType {
+  AKAZE,
+  BRIEF,
+  BRISK,
+  FREAK,
+  ORB,
+  SIFT
+};
+
 void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
 void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
 void detKeypointsFAST(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
@@ -32,7 +51,7 @@ void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints,
 void descKeypoints(std::vector<cv::KeyPoint> &keypoints,
                    cv::Mat &img,
                    cv::Mat &descriptors,
-                   std::string descriptorType);
+                   DescriptorType descriptor_type);
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
                       std::vector<cv::KeyPoint> &kPtsRef,
                       cv::Mat &descSource,

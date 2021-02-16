@@ -73,35 +73,32 @@ int main(int argc, const char *argv[]) {
     // extract 2D keypoints from current image
     vector<cv::KeyPoint> keypoints; // create empty feature list for current image
 
-    enum class DetectorType {
-      SHITOMASI,
-      HARRIS,
-      FAST,
-      BRISK,
-      ORB,
-      AKAZE,
-      SIFT
-    };
-
     DetectorType detector_type{DetectorType::SHITOMASI};
 
     //// STUDENT ASSIGNMENT
     //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
     //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
     switch (detector_type) {
-      case DetectorType::SHITOMASI :detKeypointsShiTomasi(keypoints, imgGray, false);
+      case DetectorType::SHITOMASI:
+        detKeypointsShiTomasi(keypoints, imgGray, false);
         break;
-      case DetectorType::HARRIS:detKeypointsHarris(keypoints, imgGray, false);
+      case DetectorType::HARRIS:
+        detKeypointsHarris(keypoints, imgGray, false);
         break;
-      case DetectorType::FAST:detKeypointsFAST(keypoints, imgGray, false);
+      case DetectorType::FAST:
+        detKeypointsFAST(keypoints, imgGray, false);
         break;
-      case DetectorType::BRISK:detKeypointsBRISK(keypoints, imgGray, false);
+      case DetectorType::BRISK:
+        detKeypointsBRISK(keypoints, imgGray, false);
         break;
-      case DetectorType::ORB:detKeypointsORB(keypoints, imgGray, false);
+      case DetectorType::ORB:
+        detKeypointsORB(keypoints, imgGray, false);
         break;
-      case DetectorType::AKAZE:detKeypointsAKAZE(keypoints, imgGray, false);
+      case DetectorType::AKAZE:
+        detKeypointsAKAZE(keypoints, imgGray, false);
         break;
-      case DetectorType::SIFT:detKeypointsSIFT(keypoints, imgGray, false);
+      case DetectorType::SIFT:
+        detKeypointsSIFT(keypoints, imgGray, false);
         break;
       default:break;
     }
@@ -144,10 +141,9 @@ int main(int argc, const char *argv[]) {
     //// STUDENT ASSIGNMENT
     //// TASK MP.4 -> add the following descriptors in file matching2D.cpp and enable string-based selection based on descriptorType
     //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
-
     cv::Mat descriptors;
-    string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
-    descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
+    DescriptorType descriptor_type{DescriptorType::BRISK}; // BRIEF, ORB, FREAK, AKAZE, SIFT
+    descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptor_type);
     //// EOF STUDENT ASSIGNMENT
 
     // push descriptors for current frame to end of data buffer
