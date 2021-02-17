@@ -17,7 +17,6 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
                       cv::Mat &descSource,
                       cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches,
-                      std::string descriptorType,
                       MatcherType matcherType,
                       SelectorType selectorType) {
   // configure matcher

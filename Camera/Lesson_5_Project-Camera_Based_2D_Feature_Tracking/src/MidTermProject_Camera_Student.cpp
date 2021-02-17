@@ -158,7 +158,6 @@ int main(int argc, const char *argv[]) {
 
       vector<cv::DMatch> matches;
       MatcherType matcherType{MatcherType::MAT_FLANN};        // MAT_BF, MAT_FLANN
-      string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
       SelectorType selectorType{SelectorType::SEL_KNN};       // SEL_NN, SEL_KNN
 
       //// STUDENT ASSIGNMENT
@@ -167,7 +166,7 @@ int main(int argc, const char *argv[]) {
 
       matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                        (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                       matches, descriptorType, matcherType, selectorType);
+                       matches, matcherType, selectorType);
 
       //// EOF STUDENT ASSIGNMENT
 
