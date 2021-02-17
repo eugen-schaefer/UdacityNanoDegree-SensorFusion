@@ -37,6 +37,16 @@ enum class DescriptorType {
   SIFT
 };
 
+enum class MatcherType {
+  MAT_BF,
+  MAT_FLANN
+};
+
+enum class SelectorType {
+  SEL_NN, // nearest neighbor (best match)
+  SEL_KNN // k nearest neighbors (k=2)
+};
+
 void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
 void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
 void detKeypointsFAST(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool is_visualization = false);
@@ -58,7 +68,7 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
                       cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches,
                       std::string descriptorType,
-                      std::string matcherType,
-                      std::string selectorType);
+                      MatcherType matcherType,
+                      SelectorType selectorType);
 
 #endif /* matching2D_hpp */

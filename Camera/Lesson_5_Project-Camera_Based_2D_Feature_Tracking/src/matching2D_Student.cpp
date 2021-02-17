@@ -18,25 +18,47 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
                       cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches,
                       std::string descriptorType,
-                      std::string matcherType,
-                      std::string selectorType) {
+                      MatcherType matcherType,
+                      SelectorType selectorType) {
   // configure matcher
   bool crossCheck = false;
   cv::Ptr<cv::DescriptorMatcher> matcher;
 
-  if (matcherType.compare("MAT_BF") == 0) {
-    int normType = cv::NORM_L2;//cv::NORM_HAMMING does not work for AKAZE and SIFT;
-    matcher = cv::BFMatcher::create(normType, crossCheck);
-  } else if (matcherType.compare("MAT_FLANN") == 0) {
-    // ...
+  switch (matcherType) {
+    case MatcherType::MAT_BF: {
+      int normType = cv::NORM_L2;
+      //cv::NORM_HAMMING does not work for AKAZE and SIFT;
+      matcher = cv::BFMatcher::create(normType, crossCheck);
+      break;
+    }
+    case MatcherType::MAT_FLANN: {
+      matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+      break;
+    }
+    default:break;
   }
 
-  // perform matching task
-  if (selectorType.compare("SEL_NN") == 0) { // nearest neighbor (best match)
-    matcher->match(descSource, descRef, matches); // Finds the best match for each descriptor in desc1
-  } else if (selectorType.compare("SEL_KNN") == 0) { // k nearest neighbors (k=2)
+  switch (selectorType) {
+    case SelectorType::SEL_NN: {
+      matcher->match(descSource, descRef, matches);
+      // Finds the best match for each descriptor
+      break;
+    }
+    case SelectorType::SEL_KNN: {
+      std::vector<std::vector<cv::DMatch>> knn_matches;
+      int k = 2;
+      matcher->knnMatch(descSource, descRef, knn_matches, k);
 
-    // ...
+      // TODO : filter matches using descriptor distance ratio test
+      float dist_ratio_threshold{0.8f};
+      for (auto &knn_match : knn_matches) {
+        if (knn_match[0].distance / knn_match[1].distance < dist_ratio_threshold) {
+          matches.push_back(knn_match[0]);
+        }
+      }
+      break;
+    }
+    default:break;
   }
 }
 

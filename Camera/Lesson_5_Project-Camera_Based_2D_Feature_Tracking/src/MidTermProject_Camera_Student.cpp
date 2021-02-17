@@ -125,7 +125,7 @@ int main(int argc, const char *argv[]) {
     if (bLimitKpts) {
       int maxKeypoints = 50;
       // there is no response info, so keep the first 50 as they are sorted in descending quality order
-      if (detector_type == DetectorType::SHITOMASI) {
+      if (detector_type == DetectorType::SIFT) {
         keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
       }
       cv::KeyPointsFilter::retainBest(keypoints, maxKeypoints);
@@ -142,7 +142,7 @@ int main(int argc, const char *argv[]) {
     //// TASK MP.4 -> add the following descriptors in file matching2D.cpp and enable string-based selection based on descriptorType
     //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
     cv::Mat descriptors;
-    DescriptorType descriptor_type{DescriptorType::BRISK}; // BRIEF, ORB, FREAK, AKAZE, SIFT
+    DescriptorType descriptor_type{DescriptorType::SIFT}; // BRIEF, ORB, FREAK, AKAZE, SIFT
     descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptor_type);
     //// EOF STUDENT ASSIGNMENT
 
@@ -157,9 +157,9 @@ int main(int argc, const char *argv[]) {
       /* MATCH KEYPOINT DESCRIPTORS */
 
       vector<cv::DMatch> matches;
-      string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
+      MatcherType matcherType{MatcherType::MAT_FLANN};        // MAT_BF, MAT_FLANN
       string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-      string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+      SelectorType selectorType{SelectorType::SEL_KNN};       // SEL_NN, SEL_KNN
 
       //// STUDENT ASSIGNMENT
       //// TASK MP.5 -> add FLANN matching in file matching2D.cpp
