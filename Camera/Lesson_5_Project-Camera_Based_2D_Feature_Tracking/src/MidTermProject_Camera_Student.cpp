@@ -18,6 +18,7 @@ int main(int argc, const char *argv[]) {
 
   /* INIT VARIABLES AND DATA STRUCTURES */
 
+  // detector / descriptor combinations
   DetectorType detector_type{DetectorType::ORB};
   DescriptorType descriptor_type{DescriptorType::BRISK}; // BRIEF, ORB, FREAK, AKAZE, SIFT
   MatcherType matcher_type{MatcherType::MAT_BF};        // MAT_BF, MAT_FLANN

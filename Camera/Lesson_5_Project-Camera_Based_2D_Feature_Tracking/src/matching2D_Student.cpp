@@ -178,7 +178,7 @@ double detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bo
       int response = static_cast<int>(dst_norm.at<float>(row_idx, col_idx));
       if (response > minResponse) { // only store points above a threshold
         cv::KeyPoint newKeyPoint;
-        newKeyPoint.pt = cv::Point2f(row_idx, col_idx); //TODO(Eugen): check the order of col/row
+        newKeyPoint.pt = cv::Point2f(col_idx, row_idx);
         newKeyPoint.size = static_cast<float>(2 * apertureSize);
         newKeyPoint.response = static_cast<float>(response);
 
