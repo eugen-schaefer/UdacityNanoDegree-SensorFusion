@@ -48,8 +48,8 @@ int main(int argc, const char *argv[]) {
       "KITTI/2011_09_26/image_02/data/000000";  // left camera, color
   string imgFileType = ".png";
   int imgStartIndex = 0;  // first file index to load (assumes Lidar and camera
-                          // names have identical naming convention)
-  int imgEndIndex = 18;   // last file index to load
+  // names have identical naming convention)
+  int imgEndIndex = 18;  // last file index to load
   int imgStepWidth = 1;
   int imgFillWidth =
       4;  // no. of digits which make up the file index (e.g. img-0001.png)
@@ -70,7 +70,7 @@ int main(int argc, const char *argv[]) {
       cv::DataType<double>::type);  // 3x4 projection matrix after rectification
   cv::Mat R_rect_00(4, 4,
                     cv::DataType<double>::type);  // 3x3 rectifying rotation to
-                                                  // make image planes co-planar
+  // make image planes co-planar
   cv::Mat RT(
       4, 4,
       cv::DataType<double>::type);  // rotation matrix and translation vector
@@ -124,12 +124,12 @@ int main(int argc, const char *argv[]) {
 
   // misc
   double sensorFrameRate =
-      10.0 / imgStepWidth;       // frames per second for Lidar and camera
-  int dataBufferSize = 2;        // no. of images which are held in memory (ring
-                                 // buffer) at the same time
+      10.0 / imgStepWidth;  // frames per second for Lidar and camera
+  int dataBufferSize = 2;   // no. of images which are held in memory (ring
+  // buffer) at the same time
   vector<DataFrame> dataBuffer;  // list of data frames which are held in memory
-                                 // at the same time
-  bool bVis = false;             // visualize results
+  // at the same time
+  bool bVis = false;  // visualize results
 
   /* MAIN LOOP OVER ALL IMAGES */
 
@@ -186,7 +186,7 @@ int main(int argc, const char *argv[]) {
     // associate Lidar points with camera-based ROI
     float shrinkFactor =
         0.10;  // shrinks each bounding box by the given percentage to avoid 3D
-               // object merging at the edges of an ROI
+    // object merging at the edges of an ROI
     clusterLidarWithROI((dataBuffer.end() - 1)->boundingBoxes,
                         (dataBuffer.end() - 1)->lidarPoints, shrinkFactor,
                         P_rect_00, R_rect_00, RT);
@@ -324,9 +324,8 @@ int main(int argc, const char *argv[]) {
         BoundingBox *prevBB, *currBB;
         for (auto it2 = (dataBuffer.end() - 1)->boundingBoxes.begin();
              it2 != (dataBuffer.end() - 1)->boundingBoxes.end(); ++it2) {
-          if (it1->second == it2->boxID)  // check wether current match partner
-                                          // corresponds to this BB
-          {
+          // check wether current match partner corresponds to this BB
+          if (it1->second == it2->boxID) {
             currBB = &(*it2);
           }
         }

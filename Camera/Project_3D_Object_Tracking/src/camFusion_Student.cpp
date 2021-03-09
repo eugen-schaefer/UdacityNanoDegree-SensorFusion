@@ -163,7 +163,34 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev,
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate,
                      double &TTC) {
-  // ...
+  // Sort the lidar points in ascending order w.r.t. x-coordinate to ensure the
+  // point correspondence between 2 frames.
+  std::sort(lidarPointsPrev.begin(), lidarPointsPrev.end(),
+            [](LidarPoint a, LidarPoint b) { return (a.x < b.x); });
+  std::sort(lidarPointsCurr.begin(), lidarPointsCurr.end(),
+            [](LidarPoint a, LidarPoint b) { return (a.x < b.x); });
+
+  int nr_points_to_consider{
+      static_cast<int>(min(lidarPointsPrev.size(), lidarPointsPrev.size()))};
+
+  std::vector<float> ttc_list{};
+  for (int index = 0; index < nr_points_to_consider; ++index) {
+    ttc_list.push_back(1.0 / frameRate * lidarPointsCurr[index].x /
+                       (lidarPointsPrev[index].x - lidarPointsCurr[index].x));
+  }
+
+  // Calculate the median out of all entries in the TTC list
+  if (!ttc_list.empty()) {
+    std::sort(ttc_list.begin(), ttc_list.end());
+    int size = ttc_list.size();
+    if (size % 2 == 0) {
+      TTC = (ttc_list[size / 2 - 1] + ttc_list[size / 2]) / 2;
+    } else {
+      TTC = ttc_list[size / 2];
+    }
+  } else {
+    TTC = 0;
+  }
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches,
