@@ -1,4 +1,3 @@
-
 #ifndef matching2D_hpp
 #define matching2D_hpp
 
@@ -19,18 +18,40 @@
 
 #include "dataStructures.h"
 
-void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
-                        bool bVis = false);
-void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
-                           bool bVis = false);
-void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
-                        std::string detectorType, bool bVis = false);
-void descKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
-                   cv::Mat &descriptors, std::string descriptorType);
-void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
-                      std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource,
-                      cv::Mat &descRef, std::vector<cv::DMatch> &matches,
-                      std::string descriptorType, std::string matcherType,
-                      std::string selectorType);
+enum class DetectorType { AKAZE, BRISK, FAST, HARRIS, ORB, SIFT, SHITOMASI };
+
+enum class DescriptorType { AKAZE, BRIEF, BRISK, FREAK, ORB, SIFT };
+
+enum class MatcherType { MAT_BF, MAT_FLANN };
+
+enum class SelectorType {
+  SEL_NN,  // nearest neighbor (best match)
+  SEL_KNN  // k nearest neighbors (k=2)
+};
+
+// TODO(Eugen): Make void as return type in case the return type is not needed
+double detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                             bool is_visualization = false);
+double detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                          bool is_visualization = false);
+double detKeypointsFAST(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                        bool is_visualization = false);
+double detKeypointsBRISK(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                         bool is_visualization = false);
+double detKeypointsORB(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                       bool is_visualization = false);
+double detKeypointsAKAZE(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                         bool is_visualization = false);
+double detKeypointsSIFT(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                        bool is_visualization = false);
+double detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                          std::string detectorType,
+                          bool is_visualization = false);
+double descKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
+                     cv::Mat &descriptors, DescriptorType descriptor_type);
+double matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource,
+                        std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource,
+                        cv::Mat &descRef, std::vector<cv::DMatch> &matches,
+                        MatcherType matcherType, SelectorType selectorType);
 
 #endif /* matching2D_hpp */
