@@ -34,9 +34,9 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes,
     pt.x = Y.at<double>(0, 0) / Y.at<double>(2, 0);
     pt.y = Y.at<double>(1, 0) / Y.at<double>(2, 0);
 
-    vector<vector<BoundingBox>::iterator>
-        enclosingBoxes;  // pointers to all bounding boxes which enclose the
-                         // current Lidar point
+    // pointers to all bounding boxes which enclose the current Lidar point
+    vector<vector<BoundingBox>::iterator> enclosingBoxes;
+
     for (vector<BoundingBox>::iterator it2 = boundingBoxes.begin();
          it2 != boundingBoxes.end(); ++it2) {
       // shrink current bounding box slightly to avoid having too many outlier
@@ -167,7 +167,57 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches,
-                        std::map<int, int> &bbBestMatches, DataFrame &prevFrame,
-                        DataFrame &currFrame) {
-  // ...
+                        std::map<int, int> &bb_best_matches,
+                        DataFrame &prev_frame, DataFrame &curr_frame) {
+  // Initialize a table with zeros to hold the bounding box matches between the
+  // previous and current frames. The rows corresponds to bounding box indices
+  // from the previous frame and the columns to to bounding box indices from the
+  // current frame.
+  int nr_bb_in_prev_frame = prev_frame.boundingBoxes.size();
+  int nr_bb_in_curr_frame = curr_frame.boundingBoxes.size();
+  int nr_bb_matches[nr_bb_in_prev_frame][nr_bb_in_curr_frame];
+  memset(nr_bb_matches, 0, sizeof(nr_bb_matches));
+
+  // Iterate over all keypoint matches and fill the table with numbers counting
+  // how many matches the corresponding bounding box pair have had
+  for (auto const &match : matches) {
+    auto prev_keypoint = prev_frame.keypoints[match.queryIdx].pt;
+    auto curr_keypoint = curr_frame.keypoints[match.trainIdx].pt;
+
+    for (int i = 0; i < nr_bb_in_prev_frame; ++i) {
+      bool is_prev_keypoint_in_prev_bb{
+          prev_frame.boundingBoxes[i].roi.contains(prev_keypoint)};
+      for (int j = 0; j < nr_bb_in_curr_frame; ++j) {
+        bool is_curr_keypoint_in_prev_bb{
+            curr_frame.boundingBoxes[j].roi.contains(curr_keypoint)};
+        if (is_prev_keypoint_in_prev_bb && is_curr_keypoint_in_prev_bb) {
+          ++nr_bb_matches[i][j];
+        }
+      }
+    }
+  }
+
+  // Find maximum in the table and assign it to the output
+  int maximum_in_row{};
+  int bb_idx_in_prev_frame_with_most_matches{-1};
+  int bb_idx_in_curr_frame_with_most_matches{-1};
+  for (int i = 0; i < nr_bb_in_prev_frame; i++) {
+    maximum_in_row = 0;
+    for (int j = 0; j < nr_bb_in_curr_frame; j++) {
+      if (nr_bb_matches[i][j] > maximum_in_row) {
+        maximum_in_row = nr_bb_matches[i][j];
+        bb_idx_in_prev_frame_with_most_matches = i;
+        bb_idx_in_curr_frame_with_most_matches = j;
+      }
+    }
+    if (maximum_in_row > 0) {
+      auto bb_id_in_prev_frame{
+          prev_frame.boundingBoxes[bb_idx_in_prev_frame_with_most_matches]
+              .boxID};
+      auto bb_id_in_curr_frame{
+          curr_frame.boundingBoxes[bb_idx_in_curr_frame_with_most_matches]
+              .boxID};
+      bb_best_matches.insert({bb_id_in_prev_frame, bb_id_in_curr_frame});
+    }
+  }
 }
