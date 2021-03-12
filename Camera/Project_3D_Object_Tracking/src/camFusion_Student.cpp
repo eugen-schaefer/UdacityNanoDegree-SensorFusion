@@ -10,6 +10,20 @@
 
 using namespace std;
 
+float CalculateMedian(vector<float> &input_list) {
+  float median{};
+  if (!input_list.empty()) {
+    std::sort(input_list.begin(), input_list.end());
+    int size = input_list.size();
+    if (size % 2 == 0) {
+      median = (input_list[size / 2 - 1] + input_list[size / 2]) / 2;
+    } else {
+      median = input_list[size / 2];
+    }
+  }
+  return median;
+}
+
 // Create groups of Lidar points whose projection into the camera falls into the
 // same bounding box
 void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes,
@@ -144,11 +158,54 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize,
 }
 
 // associate a given bounding box with the keypoints it contains
-void clusterKptMatchesWithROI(BoundingBox &boundingBox,
-                              std::vector<cv::KeyPoint> &kptsPrev,
-                              std::vector<cv::KeyPoint> &kptsCurr,
-                              std::vector<cv::DMatch> &kptMatches) {
-  // ...
+void clusterKptMatchesWithROI(BoundingBox &bounding_box,
+                              std::vector<cv::KeyPoint> &kpts_prev,
+                              std::vector<cv::KeyPoint> &kpts_curr,
+                              std::vector<cv::DMatch> &kpt_matches) {
+  // First, assign keypoint matches inside the ROI
+  for (auto const &match : kpt_matches) {
+    bool is_prev_kp_in_bb{
+        bounding_box.roi.contains(kpts_prev[match.queryIdx].pt)};
+    bool is_curr_kp_in_bb{
+        bounding_box.roi.contains(kpts_curr[match.trainIdx].pt)};
+    if (is_prev_kp_in_bb && is_curr_kp_in_bb) {
+      bounding_box.kptMatches.push_back(match);
+    }
+  }
+
+  // Next, compute a robust median (median) of all the euclidean distances
+  // between keypoint matches inside the bounding box
+  std::vector<float> euclidean_dist{};
+  std::vector<std::vector<cv::DMatch>::iterator> it_vec;
+  for (auto &match : bounding_box.kptMatches) {
+    float prev_pos_x = kpts_prev[match.queryIdx].pt.x;
+    float prev_pos_y = kpts_prev[match.queryIdx].pt.y;
+    float curr_pos_x = kpts_curr[match.trainIdx].pt.x;
+    float curr_pos_y = kpts_curr[match.trainIdx].pt.y;
+    euclidean_dist.push_back(
+        std::sqrt((prev_pos_x - curr_pos_x) * (prev_pos_x - curr_pos_x) +
+                  (prev_pos_y - curr_pos_y) * (prev_pos_y - curr_pos_y)));
+  }
+  std::sort(euclidean_dist.begin(), euclidean_dist.end());
+  float median{CalculateMedian(euclidean_dist)};
+
+  // Finally, remove the keypoint matches that are too far away from the median
+  float threshold{1};
+  for (auto it = bounding_box.kptMatches.begin();
+       it != bounding_box.kptMatches.end();) {
+    float prev_pos_x = kpts_prev[it->queryIdx].pt.x;
+    float prev_pos_y = kpts_prev[it->queryIdx].pt.y;
+    float curr_pos_x = kpts_curr[it->trainIdx].pt.x;
+    float curr_pos_y = kpts_curr[it->trainIdx].pt.y;
+    float dist =
+        std::sqrt((prev_pos_x - curr_pos_x) * (prev_pos_x - curr_pos_x) +
+                  (prev_pos_y - curr_pos_y) * (prev_pos_y - curr_pos_y));
+    if (std::abs(dist - median) > threshold) {
+      it = bounding_box.kptMatches.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in
@@ -157,7 +214,58 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev,
                       std::vector<cv::KeyPoint> &kptsCurr,
                       std::vector<cv::DMatch> kptMatches, double frameRate,
                       double &TTC, cv::Mat *visImg) {
-  // ...
+  // compute distance ratios between all matched keypoints
+  vector<double> distRatios;  // stores the distance ratios for all keypoints
+                              // between curr. and prev. frame
+  for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1;
+       ++it1) {  // outer keypoint loop
+
+    // get current keypoint and its matched partner in the prev. frame
+    cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
+    cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
+
+    for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end();
+         ++it2) {  // inner keypoint loop
+
+      double minDist = 100.0;  // min. required distance
+
+      // get next keypoint and its matched partner in the prev. frame
+      cv::KeyPoint kpInnerCurr = kptsCurr.at(it2->trainIdx);
+      cv::KeyPoint kpInnerPrev = kptsPrev.at(it2->queryIdx);
+
+      // compute distances and distance ratios
+      double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
+      double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
+
+      if (distPrev > std::numeric_limits<double>::epsilon() &&
+          distCurr >= minDist) {  // avoid division by zero
+
+        double distRatio = distCurr / distPrev;
+        distRatios.push_back(distRatio);
+      }
+    }  // eof inner loop over all matched kpts
+  }    // eof outer loop over all matched kpts
+
+  // only continue if list of distance ratios is not empty
+  if (distRatios.empty()) {
+    TTC = NAN;
+    return;
+  }
+
+  // compute camera-based TTC from distance ratios
+  double meanDistRatio =
+      std::accumulate(distRatios.begin(), distRatios.end(), 0.0) /
+      distRatios.size();
+
+  std::sort(distRatios.begin(), distRatios.end());
+  int size{static_cast<int>(distRatios.size())};
+  double medianDistRatio =
+      (size % 2 == 0) ? (distRatios[size / 2 - 1] + distRatios[size / 2]) / 2
+                      : distRatios[size / 2];
+
+  double dT = 1 / frameRate;
+  //TTC = -dT / (1 - meanDistRatio);
+  TTC = -dT / (1 - medianDistRatio);
 }
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
@@ -180,17 +288,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   }
 
   // Calculate the median out of all entries in the TTC list
-  if (!ttc_list.empty()) {
-    std::sort(ttc_list.begin(), ttc_list.end());
-    int size = ttc_list.size();
-    if (size % 2 == 0) {
-      TTC = (ttc_list[size / 2 - 1] + ttc_list[size / 2]) / 2;
-    } else {
-      TTC = ttc_list[size / 2];
-    }
-  } else {
-    TTC = 0;
-  }
+  TTC = CalculateMedian(ttc_list);
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches,

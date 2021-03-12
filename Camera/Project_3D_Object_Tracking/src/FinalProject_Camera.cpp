@@ -332,18 +332,14 @@ int main(int argc, const char *argv[]) {
 
         for (auto it2 = (dataBuffer.end() - 2)->boundingBoxes.begin();
              it2 != (dataBuffer.end() - 2)->boundingBoxes.end(); ++it2) {
-          if (it1->first == it2->boxID)  // check wether current match partner
-                                         // corresponds to this BB
-          {
+          // check wether current match partner corresponds to this BB
+          if (it1->first == it2->boxID) {
             prevBB = &(*it2);
           }
         }
 
-        // compute TTC for current match
-        if (currBB->lidarPoints.size() > 0 &&
-            prevBB->lidarPoints.size() >
-                0)  // only compute TTC if we have Lidar points
-        {
+        // compute TTC for current match if we have Lidar points
+        if (currBB->lidarPoints.size() > 0 && prevBB->lidarPoints.size() > 0) {
           //// STUDENT ASSIGNMENT
           //// TASK FP.2 -> compute time-to-collision based on Lidar data
           ///(implement -> computeTTCLidar)
