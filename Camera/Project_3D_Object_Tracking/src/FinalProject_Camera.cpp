@@ -28,16 +28,16 @@ int main(int argc, const char *argv[]) {
   // detector / descriptor combinations
 
   // AKAZE, BRISK, FAST, HARRIS, ORB, SIFT, SHITOMASI
-  DetectorType detector_type{DetectorType::SHITOMASI};
+  DetectorType detector_type{DetectorType::AKAZE};
 
   // BRIEF, ORB, FREAK, AKAZE, SIFT
-  DescriptorType descriptor_type{DescriptorType::BRISK};
+  DescriptorType descriptor_type{DescriptorType::BRIEF};
 
   // MAT_BF, MAT_FLANN
   MatcherType matcher_type{MatcherType::MAT_BF};
 
   // SEL_NN, SEL_KNN
-  SelectorType selector_type{SelectorType::SEL_NN};
+  SelectorType selector_type{SelectorType::SEL_KNN};
 
   // data location
   string dataPath = "../";
@@ -49,7 +49,7 @@ int main(int argc, const char *argv[]) {
   string imgFileType = ".png";
   int imgStartIndex = 0;  // first file index to load (assumes Lidar and camera
   // names have identical naming convention)
-  int imgEndIndex = 18;  // last file index to load
+  int imgEndIndex = 77;  // last file index to load
   int imgStepWidth = 1;
   int imgFillWidth =
       4;  // no. of digits which make up the file index (e.g. img-0001.png)
@@ -63,6 +63,14 @@ int main(int argc, const char *argv[]) {
   // Lidar
   string lidarPrefix = "KITTI/2011_09_26/velodyne_points/data/000000";
   string lidarFileType = ".bin";
+
+  struct LogType {
+    int image_index;
+    int boundingbox_id;
+    float ttc_lidar;
+    float ttc_camera;
+  };
+  std::vector<LogType> TTC_All_Frames{};
 
   // calibration data for camera and lidar
   cv::Mat P_rect_00(
@@ -129,10 +137,9 @@ int main(int argc, const char *argv[]) {
   // buffer) at the same time
   vector<DataFrame> dataBuffer;  // list of data frames which are held in memory
   // at the same time
-  bool bVis = false;  // visualize results
+  bool bVis = true;  // visualize results
 
   /* MAIN LOOP OVER ALL IMAGES */
-
   for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex;
        imgIndex += imgStepWidth) {
     /* LOAD IMAGE INTO BUFFER */
@@ -346,6 +353,7 @@ int main(int argc, const char *argv[]) {
           double ttcLidar;
           computeTTCLidar(prevBB->lidarPoints, currBB->lidarPoints,
                           sensorFrameRate, ttcLidar);
+
           //// EOF STUDENT ASSIGNMENT
 
           //// STUDENT ASSIGNMENT
@@ -359,6 +367,11 @@ int main(int argc, const char *argv[]) {
           computeTTCCamera((dataBuffer.end() - 2)->keypoints,
                            (dataBuffer.end() - 1)->keypoints,
                            currBB->kptMatches, sensorFrameRate, ttcCamera);
+
+          LogType log_per_frame{static_cast<int>(imgIndex), currBB->boxID,
+                                static_cast<float>(ttcLidar),
+                                static_cast<float>(ttcCamera)};
+          TTC_All_Frames.push_back(log_per_frame);
           //// EOF STUDENT ASSIGNMENT
 
           bVis = true;
@@ -372,8 +385,8 @@ int main(int argc, const char *argv[]) {
                           cv::Scalar(0, 255, 0), 2);
 
             char str[200];
-            sprintf(str, "TTC Lidar : %f s, TTC Camera : %f s", ttcLidar,
-                    ttcCamera);
+            sprintf(str, "TTC Lidar : %f s, TTC Camera : %f s, Frame: %ld",
+                    ttcLidar, ttcCamera, imgIndex);
             putText(visImg, str, cv::Point2f(80, 50), cv::FONT_HERSHEY_PLAIN, 2,
                     cv::Scalar(0, 0, 255));
 
@@ -390,6 +403,17 @@ int main(int argc, const char *argv[]) {
     }
 
   }  // eof loop over all images
+
+  // Write TTC for all frames into an text file
+  ofstream myfile;
+  myfile.open("TTC_Log.txt");
+  myfile << "image_index | boundingbox_id | ttc_lidar | ttc_camera"
+         << std::endl;
+  for (auto log : TTC_All_Frames) {
+    myfile << log.image_index << "; " << log.boundingbox_id << "; "
+           << log.ttc_lidar << "; " << log.ttc_camera << std::endl;
+  }
+  myfile.close();
 
   return 0;
 }

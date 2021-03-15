@@ -25,7 +25,7 @@ This repo contains lesson-wise exercises and corresponding solutions for Udacity
    - Creating 3D-Objects
    - Lidar-to-Camera Point Projection
    - Object Detection with YOLO
-1. Lesson 7: Starter code for "Project: Track an Object in 3D Space" is available here - https://github.com/udacity/SFND_3D_Object_Tracking
+1. Starter code for "Project: Track an Object in 3D Space" is available here - https://github.com/udacity/SFND_3D_Object_Tracking
 
 
 ## B. Dependencies for Running Locally

@@ -10,8 +10,9 @@
 
 using namespace std;
 
-float CalculateMedian(vector<float> &input_list) {
-  float median{};
+template <typename T>
+T CalculateMedian(vector<T> &input_list) {
+  T median{};
   if (!input_list.empty()) {
     std::sort(input_list.begin(), input_list.end());
     int size = input_list.size();
@@ -22,6 +23,21 @@ float CalculateMedian(vector<float> &input_list) {
     }
   }
   return median;
+}
+
+template <typename T>
+T CalculateMean(vector<T> &input_list) {
+  return (std::accumulate(input_list.begin(), input_list.end(), 0.0f)) /
+         (static_cast<T>(input_list.size()));
+}
+
+template <typename T>
+T CalculateMinimum(vector<T> &input_list) {
+  T min_value{std::numeric_limits<T>::max()};
+  for (auto &input : input_list) {
+    min_value = input < min_value ? input : min_value;
+  }
+  return min_value;
 }
 
 // Create groups of Lidar points whose projection into the camera falls into the
@@ -132,7 +148,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize,
     sprintf(str1, "id=%d, #pts=%d", it1->boxID, (int)it1->lidarPoints.size());
     putText(topviewImg, str1, cv::Point2f(left - 250, bottom + 50),
             cv::FONT_ITALIC, 2, currColor);
-    sprintf(str2, "xmin=%2.2f m, yw=%2.2f m", xwmin, ywmax - ywmin);
+    sprintf(str2, "x_min=%2.2f m, y_width=%2.2f m", xwmin, ywmax - ywmin);
     putText(topviewImg, str2, cv::Point2f(left - 250, bottom + 125),
             cv::FONT_ITALIC, 2, currColor);
   }
@@ -149,7 +165,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize,
 
   // display image
   string windowName = "3D Objects";
-  cv::namedWindow(windowName, 1);
+  cv::namedWindow(windowName, cv::WINDOW_NORMAL);
   cv::imshow(windowName, topviewImg);
 
   if (bWait) {
@@ -187,7 +203,7 @@ void clusterKptMatchesWithROI(BoundingBox &bounding_box,
                   (prev_pos_y - curr_pos_y) * (prev_pos_y - curr_pos_y)));
   }
   std::sort(euclidean_dist.begin(), euclidean_dist.end());
-  float median{CalculateMedian(euclidean_dist)};
+  float median{CalculateMedian<float>(euclidean_dist)};
 
   // Finally, remove the keypoint matches that are too far away from the median
   float threshold{1};
@@ -253,19 +269,9 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev,
   }
 
   // compute camera-based TTC from distance ratios
-  double meanDistRatio =
-      std::accumulate(distRatios.begin(), distRatios.end(), 0.0) /
-      distRatios.size();
-
-  std::sort(distRatios.begin(), distRatios.end());
-  int size{static_cast<int>(distRatios.size())};
-  double medianDistRatio =
-      (size % 2 == 0) ? (distRatios[size / 2 - 1] + distRatios[size / 2]) / 2
-                      : distRatios[size / 2];
-
   double dT = 1 / frameRate;
-  //TTC = -dT / (1 - meanDistRatio);
-  TTC = -dT / (1 - medianDistRatio);
+  // TTC = -dT / (1 - CalculateMean<double>(distRatios));
+  TTC = -dT / (1 - CalculateMedian<double>(distRatios));
 }
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
@@ -282,13 +288,19 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
       static_cast<int>(min(lidarPointsPrev.size(), lidarPointsPrev.size()))};
 
   std::vector<float> ttc_list{};
+  double reflectiveness_threshold{0.0};
   for (int index = 0; index < nr_points_to_consider; ++index) {
-    ttc_list.push_back(1.0 / frameRate * lidarPointsCurr[index].x /
-                       (lidarPointsPrev[index].x - lidarPointsCurr[index].x));
+    if (lidarPointsCurr[index].r > reflectiveness_threshold) {
+      ttc_list.push_back(1.0 / frameRate * lidarPointsCurr[index].x /
+                         (lidarPointsPrev[index].x - lidarPointsCurr[index].x));
+    }
   }
 
-  // Calculate the median out of all entries in the TTC list
-  TTC = CalculateMedian(ttc_list);
+  // Calculate the mean/median out of all entries in the TTC list
+  if (!ttc_list.empty()) {
+    // TTC = CalculateMean<float>(ttc_list);
+    TTC = CalculateMedian<float>(ttc_list);
+  }
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches,

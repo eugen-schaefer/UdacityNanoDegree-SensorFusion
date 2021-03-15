@@ -11,7 +11,7 @@ The goal of this course is to learn to detect obstacles in lidar point clouds th
 Four courses comprise the Sensor Fusion Engineer Nanodegree Program:
 
  * [Lidar](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Lidar)
- * Camera
+ * [Camera](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Camera)
  * Radar
  * Kalman Filters
  

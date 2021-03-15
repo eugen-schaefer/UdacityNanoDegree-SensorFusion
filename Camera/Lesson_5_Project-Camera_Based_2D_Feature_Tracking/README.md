@@ -39,6 +39,9 @@ For every possible detector / descriptor combination, an average number of keypo
 Time logging has been implemented for keypoint detection and descriptor extraction. All retrieved results have been entered into a spreadsheet and based on this data, the TOP3 detector/descriptor combinations have been recommended as the best choice for our purpose of detecting keypoints on vehicles.
 
 
+## Dependencies for Running Locally
+* see [HERE](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Camera#b-dependencies-for-running-locally) for details.
+
 ## Basic Build Instructions
 
 1. Clone the entire repo as explained [HERE](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion#cloning)
