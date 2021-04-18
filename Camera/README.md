@@ -1,4 +1,4 @@
-# Sensor Fusion NanoDegree- Camera Course
+# Camera
 Camera is the second course in the Sensor Fusion ND. The purpose of this repo is to provide the exercise code to the students, so that they can practice in local system. 
 
 This repo contains lesson-wise exercises and corresponding solutions for Udacity's Sensor Fusion ND. 
