@@ -12,7 +12,7 @@ Sensor Fusion Engineer Nanodegree Program comprises four courses:
 
  * [Lidar](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Lidar)
  * [Camera](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Camera)
- * Radar
+ * [Radar](https://github.com/eugen-schaefer/UdacityNanoDegree-SensorFusion/tree/main/Radar)
  * Kalman Filter
  
 The first three courses focus on different sensor modalities, and the final course focuses on how to fuse together data from these different sensors to develop a synthesized understanding of the world. Each course in this program concludes with a project.
