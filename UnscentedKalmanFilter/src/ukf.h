@@ -16,18 +16,19 @@ class UKF {
    */
   virtual ~UKF();
 
+    /**
+   * Prediction Predicts sigma points, the state, and the state covariance
+   * matrix
+   * @param delta_t Time between k and k+1 in s
+   */
+  void Prediction(double delta_t);
+
   /**
    * ProcessMeasurement
    * @param meas_package The latest measurement data of either radar or laser
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
 
-  /**
-   * Prediction Predicts sigma points, the state, and the state covariance
-   * matrix
-   * @param delta_t Time between k and k+1 in s
-   */
-  void Prediction(double delta_t);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
@@ -40,6 +41,25 @@ class UKF {
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+  /**
+   * Generates a set of sigma points
+   * @param sigma_points matrix storing the sigma points
+   */
+  void GenerateAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points);
+
+  /**
+   * Processes a given set of sigma points through the motion model
+   * @param sigma_points matrix storing the sigma points
+   * @param delta_t time between two consecutive time samples
+   */
+  void PredictAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points, double delta_t);
+
+  /**
+   * Calculates a-priori distribution
+   * @param sigma_points matrix storing the sigma points
+   */
+  void PredictGaussian(const Eigen::MatrixXd& sigma_points);
 
 
   // initially set to false, set to true in first call of ProcessMeasurement
