@@ -43,7 +43,7 @@ UKF::UKF() {
   // initial covariance matrix
   P_ = Eigen::MatrixXd(n_x_, n_x_);
 
-  sigma_point_matrix_ = Eigen::MatrixXd(n_aug_, 2 * n_aug_ + 1);
+  state_sigma_points_ = Eigen::MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
   weights_ = Eigen::VectorXd(2 * n_aug_ + 1);
   weights_(0) = lambda_/(lambda_+n_aug_);
@@ -89,7 +89,7 @@ UKF::UKF() {
 UKF::~UKF() {}
 
 // Transform Gaussian (mean and covariance) into sigma points
-void UKF::GenerateAugmentedSigmaPoints(MatrixXd& sigma_points){
+void UKF::GenerateAugmentedSigmaPoints(){
   // create augmented state mean vector
   Eigen::VectorXd x_aug = Eigen::VectorXd(n_aug_);
   x_aug.fill(0.0);
@@ -106,24 +106,24 @@ void UKF::GenerateAugmentedSigmaPoints(MatrixXd& sigma_points){
   MatrixXd sqrt_P_aug = P_aug.llt().matrixL();
 
   // create (2n + 1) augmented sigma points
-  sigma_points.col(0)  = x_aug;
+  state_sigma_points_.col(0)  = x_aug;
   for (int idx = 0; idx < n_aug_; ++idx) {
-    sigma_points.col(idx+1)        = x_aug + sqrt(lambda_+n_aug_) * sqrt_P_aug.col(idx);
-    sigma_points.col(idx+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_) * sqrt_P_aug.col(idx);
+    state_sigma_points_.col(idx+1)        = x_aug + sqrt(lambda_+n_aug_) * sqrt_P_aug.col(idx);
+    state_sigma_points_.col(idx+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_) * sqrt_P_aug.col(idx);
   }
 }
 
 // Process sigma points through the process model
-void UKF::PredictAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points, double delta_t){
+void UKF::PredictAugmentedSigmaPoints(double delta_t){
   for (int idx = 0; idx< 2*n_aug_+1; ++idx){
     // extract values from the sigma point matrix for better readability
-    double long_pos_sp = sigma_points(0, idx);
-    double lat_pos_sp = sigma_points(1, idx);
-    double abs_vel_sp = sigma_points(2, idx);
-    double yaw_sp = sigma_points(3, idx);
-    double yaw_rate_sp = sigma_points(4, idx);
-    double translational_acceleration_noise_sp = sigma_points(5, idx);
-    double rotational_acceleration_noise_sp = sigma_points(6, idx);
+    double long_pos_sp = state_sigma_points_(0, idx);
+    double lat_pos_sp = state_sigma_points_(1, idx);
+    double abs_vel_sp = state_sigma_points_(2, idx);
+    double yaw_sp = state_sigma_points_(3, idx);
+    double yaw_rate_sp = state_sigma_points_(4, idx);
+    double translational_acceleration_noise_sp = state_sigma_points_(5, idx);
+    double rotational_acceleration_noise_sp = state_sigma_points_(6, idx);
 
     // propagate sigma points through the process model avoiding division by zero
     if (fabs(yaw_rate_sp) > 0.001) {
@@ -146,21 +146,21 @@ void UKF::PredictAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points, double delt
     yaw_rate_sp = yaw_rate_sp + rotational_acceleration_noise_sp*delta_t;
 
     // write back predicted sigma points into the sigma point matrix
-    sigma_points(0, idx) = long_pos_sp;
-    sigma_points(1, idx) = lat_pos_sp;
-    sigma_points(2, idx) = abs_vel_sp;
-    sigma_points(3, idx) = yaw_sp;
-    sigma_points(4, idx) = yaw_rate_sp;
+    state_sigma_points_(0, idx) = long_pos_sp;
+    state_sigma_points_(1, idx) = lat_pos_sp;
+    state_sigma_points_(2, idx) = abs_vel_sp;
+    state_sigma_points_(3, idx) = yaw_sp;
+    state_sigma_points_(4, idx) = yaw_rate_sp;
   }
 }
 
 // Transform back sigma points into Gaussian (mean and covariance)
-void UKF::PredictGaussian(const Eigen::MatrixXd& sigma_points){
+void UKF::PredictGaussian(){
 
   // predicted state mean
   x_.fill(0.0);
   for (int idx = 0; idx < (2 * n_aug_ + 1); ++idx) {
-    x_ = x_ + weights_(idx) * sigma_points.col(idx).segment(0, n_x_);
+    x_ = x_ + weights_(idx) * state_sigma_points_.col(idx).segment(0, n_x_);
   }
 
   // In case we get unrealistic values due to numerical issues,
@@ -179,7 +179,7 @@ void UKF::PredictGaussian(const Eigen::MatrixXd& sigma_points){
   P_.fill(0.0);
   for (int idx = 0; idx < (2 * n_aug_ + 1); ++idx) {  // iterate over sigma points
     // state difference
-    VectorXd x_diff = sigma_points.col(idx).segment(0, n_x_) - x_;
+    VectorXd x_diff = state_sigma_points_.col(idx).segment(0, n_x_) - x_;
     // angle normalization
     while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
     while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
@@ -188,9 +188,9 @@ void UKF::PredictGaussian(const Eigen::MatrixXd& sigma_points){
 }
 
 void UKF::Prediction(double delta_t) {
-  GenerateAugmentedSigmaPoints(sigma_point_matrix_);
-  PredictAugmentedSigmaPoints(sigma_point_matrix_, delta_t);
-  PredictGaussian(sigma_point_matrix_);
+  GenerateAugmentedSigmaPoints();
+  PredictAugmentedSigmaPoints(delta_t);
+  PredictGaussian();
 }
 
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
@@ -231,7 +231,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       P_.fill(0.0);
       P_.diagonal() << init_sigma_x, init_sigma_y, init_sigma_v, init_sigma_yaw, init_sigma_yawrate;
 
-      GenerateAugmentedSigmaPoints(sigma_point_matrix_);
+      GenerateAugmentedSigmaPoints();
       time_us_ = meas_package.timestamp_;
       is_initialized_ = true;
       return;
@@ -262,7 +262,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   Eigen::MatrixXd S = Eigen::MatrixXd(radar_n_z, radar_n_z);
   Eigen::MatrixXd measurement_sigma_points = Eigen::MatrixXd(radar_n_z, 2 * n_aug_ + 1);
 
-  PredictRadarMeasurement(sigma_point_matrix_, measurement_sigma_points, predicted_measurements, S);
+  PredictRadarMeasurement(measurement_sigma_points, predicted_measurements, S);
 
   // create matrix for cross correlation Tc
   MatrixXd Tc = MatrixXd(n_x_, radar_n_z);
@@ -278,7 +278,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     // state difference
     Eigen::VectorXd predicted_x = VectorXd(n_x_);
-    predicted_x = sigma_point_matrix_.col(i).segment(0, 5);
+    predicted_x = state_sigma_points_.col(i).segment(0, 5);
     VectorXd x_diff = predicted_x - x_;
     // angle normalization
     while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
@@ -323,15 +323,15 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 }
 
 
-void UKF::PredictRadarMeasurement(const Eigen::MatrixXd& process_sigma_points, Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S){
+void UKF::PredictRadarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S){
 
   // transform (2n+1) predicted sigma points from state space into the measurement space
   for (int idx = 0; idx < (2 * n_aug_ + 1); ++idx) {
     // extract values for better readability
-    double long_pos_sp = process_sigma_points(0, idx);
-    double lat_pos_sp = process_sigma_points(1, idx);
-    double abs_vel_sp  = process_sigma_points(2, idx);
-    double yaw_sp = process_sigma_points(3, idx);
+    double long_pos_sp = state_sigma_points_(0, idx);
+    double lat_pos_sp = state_sigma_points_(1, idx);
+    double abs_vel_sp  = state_sigma_points_(2, idx);
+    double yaw_sp = state_sigma_points_(3, idx);
     double long_vel_sp = cos(yaw_sp)*abs_vel_sp;
     double lat_vel_sp = sin(yaw_sp)*abs_vel_sp;
 

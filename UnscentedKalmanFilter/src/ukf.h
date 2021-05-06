@@ -44,31 +44,27 @@ class UKF {
 
   /**
    * Generates a set of sigma points
-   * @param sigma_points matrix storing the sigma points
    */
-  void GenerateAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points);
+  void GenerateAugmentedSigmaPoints();
 
   /**
    * Processes a given set of sigma points through the motion model
-   * @param sigma_points matrix storing the sigma points
    * @param delta_t time between two consecutive time samples
    */
-  void PredictAugmentedSigmaPoints(Eigen::MatrixXd& sigma_points, double delta_t);
+  void PredictAugmentedSigmaPoints(double delta_t);
 
   /**
    * Calculates a-priori distribution
-   * @param sigma_points matrix storing the sigma points
    */
-  void PredictGaussian(const Eigen::MatrixXd& sigma_points);
+  void PredictGaussian();
 
   /**
    * Convert predicted Gaussian from state space into measurement space
-   * @param process_sigma_points: matrix storing the sigma points in the state space
    * @param measurement_sigma_points: matrix storing the sigma points in the measurement space
    * @param predicted_measurements: vector containing predicted Gaussian in the measurement space
    * @param S: Innovation covariance matrix
    */
-  void PredictRadarMeasurement(const Eigen::MatrixXd& process_sigma_points, Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S);
+  void PredictRadarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S);
 
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
@@ -85,8 +81,8 @@ class UKF {
   // state covariance matrix
   Eigen::MatrixXd P_;
 
-  // predicted sigma points matrix
-  Eigen::MatrixXd sigma_point_matrix_;
+  // matrix storing the sigma points in the state space
+  Eigen::MatrixXd state_sigma_points_;
 
   // Timestamp when the state was last updated based on sensor measurements
   long long time_us_;
