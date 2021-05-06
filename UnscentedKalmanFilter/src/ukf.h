@@ -16,11 +16,11 @@ class UKF {
    */
   virtual ~UKF();
 
-    /**
-   * Prediction Predicts sigma points, the state, and the state covariance
-   * matrix
-   * @param delta_t Time between k and k+1 in s
-   */
+  /**
+ * Prediction Predicts sigma points, the state, and the state covariance
+ * matrix
+ * @param delta_t Time between k and k+1 in s
+ */
   void Prediction(double delta_t);
 
   /**
@@ -61,6 +61,14 @@ class UKF {
    */
   void PredictGaussian(const Eigen::MatrixXd& sigma_points);
 
+  /**
+   * Convert predicted Gaussian from state space into measurement space
+   * @param process_sigma_points: matrix storing the sigma points in the state space
+   * @param measurement_sigma_points: matrix storing the sigma points in the measurement space
+   * @param predicted_measurements: vector containing predicted Gaussian in the measurement space
+   * @param S: Innovation covariance matrix
+   */
+  void PredictRadarMeasurement(const Eigen::MatrixXd& process_sigma_points, Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S);
 
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
@@ -78,9 +86,9 @@ class UKF {
   Eigen::MatrixXd P_;
 
   // predicted sigma points matrix
-  Eigen::MatrixXd Xsig_pred_;
+  Eigen::MatrixXd sigma_point_matrix_;
 
-  // time when the state is true, in us
+  // Timestamp when the state was last updated based on sensor measurements
   long long time_us_;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
@@ -112,6 +120,12 @@ class UKF {
 
   // Augmented state dimension
   int n_aug_;
+
+  // radar measurement dimension
+  int radar_n_z;
+
+  // lidar measurement dimension
+  int lidar_n_z;
 
   // Sigma point spreading parameter
   double lambda_;
