@@ -52,10 +52,10 @@ UKF::UKF() {
   }
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 5.0;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = 5.0;
 
   /**
    * DO NOT MODIFY measurement noise values below.
@@ -227,6 +227,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       double init_sigma_v{std_radrd_ * std_radrd_};
       double init_sigma_yaw{std_radphi_*std_radphi_};
       double init_sigma_yawrate{std_radrd_*std_radrd_};
+
       P_.fill(0.0);
       P_.diagonal() << init_sigma_x, init_sigma_y, init_sigma_v, init_sigma_yaw, init_sigma_yawrate;
 
@@ -253,9 +254,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
       double init_sigma_x{std_laspx_ * std_laspx_};
       double init_sigma_y{std_laspy_ * std_laspy_};
-      double init_sigma_v{1.0};
-      double init_sigma_yaw{1.0};
-      double init_sigma_yawrate{1.0};
+      double init_sigma_v{15.0};
+      double init_sigma_yaw{0.01};
+      double init_sigma_yawrate{0.0001};
+
       P_.fill(0.0);
       P_.diagonal() << init_sigma_x, init_sigma_y, init_sigma_v, init_sigma_yaw, init_sigma_yawrate;
 
@@ -306,6 +308,11 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   // update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S * K.transpose();
+
+  // Normalized Innovation Squared
+  double nis = z_diff.transpose()*S.inverse()*z_diff;
+  lidar_nis.time_stamp_second.push_back(static_cast<double>(meas_package.timestamp_)*10e-6);
+  lidar_nis.nis.push_back(nis);
 
   // In case we get unrealistic values due to numerical issues,
   // reset entire estimation and restart initialization
@@ -374,6 +381,10 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S * K.transpose();
 
+  // Normalized Innovation Squared
+  double nis = z_diff.transpose()*S.inverse()*z_diff;
+  radar_nis.time_stamp_second.push_back(static_cast<double>(meas_package.timestamp_)*10e-6);
+  radar_nis.nis.push_back(nis);
 
   // In case we get unrealistic values due to numerical issues,
   // reset entire estimation and restart initialization

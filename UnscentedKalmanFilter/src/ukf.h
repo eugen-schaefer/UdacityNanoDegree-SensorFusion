@@ -1,6 +1,7 @@
 #ifndef UKF_H
 #define UKF_H
 
+#include <vector>
 #include "Eigen/Dense"
 #include "measurement_package.h"
 
@@ -28,7 +29,6 @@ class UKF {
    * @param meas_package The latest measurement data of either radar or laser
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
-
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
@@ -133,6 +133,15 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  struct NIS_TYPE{
+    std::vector<double> time_stamp_second{};
+    std::vector<double> nis{};
+  };
+
+  NIS_TYPE radar_nis{};
+  NIS_TYPE lidar_nis{};
+
 };
 
 #endif  // UKF_H
