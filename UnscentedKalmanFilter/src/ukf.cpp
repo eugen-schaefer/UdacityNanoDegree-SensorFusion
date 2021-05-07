@@ -194,19 +194,18 @@ void UKF::Prediction(double delta_t) {
 }
 
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
-  /**
-   * TODO: Complete this function! Make sure you switch between lidar and radar
-   * measurements.
-   */
 
   // Time difference in seconds between the last estimate (posterior) and the timestamp from fresh measurement
   // used to predict the posterior to the time where measurement has been captured and hence to align the
   // posterior with newly arrived measurement in terms of time.
   double dt = (static_cast<double>(meas_package.timestamp_) - static_cast<double>(time_us_))/1000000.0;
+
+  /* Time alignment */
   if (is_initialized_ && (dt > 0)){
     Prediction(dt);
   }
 
+  /* Radar measurement update */
   if (meas_package.sensor_type_ == MeasurementPackage::SensorType::RADAR){
     if(!is_initialized_){
       double rho = meas_package.raw_measurements_(0);
@@ -240,23 +239,97 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     UpdateRadar(meas_package);
     time_us_ = meas_package.timestamp_;
   }
+
+  /* Lidar measurement update */
+  if (meas_package.sensor_type_ == MeasurementPackage::SensorType::LASER){
+    if(!is_initialized_){
+      double init_long_pos = meas_package.raw_measurements_(0);
+      double init_lat_pos  = meas_package.raw_measurements_(1);
+      double init_abs_vel = 0.0;
+      double init_yaw = 0.0;
+      double init_yawrate = 0.0;
+
+      x_ << init_long_pos, init_lat_pos, init_abs_vel, init_yaw, init_yawrate;
+
+      double init_sigma_x{std_laspx_ * std_laspx_};
+      double init_sigma_y{std_laspy_ * std_laspy_};
+      double init_sigma_v{1.0};
+      double init_sigma_yaw{1.0};
+      double init_sigma_yawrate{1.0};
+      P_.fill(0.0);
+      P_.diagonal() << init_sigma_x, init_sigma_y, init_sigma_v, init_sigma_yaw, init_sigma_yawrate;
+
+      GenerateAugmentedSigmaPoints();
+      time_us_ = meas_package.timestamp_;
+      is_initialized_ = true;
+      return;
+    }
+
+    UpdateLidar(meas_package);
+    time_us_ = meas_package.timestamp_;
+  }
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
   /**
-   * TODO: Complete this function! Use lidar data to update the belief
-   * about the object's position. Modify the state vector, x_, and
-   * covariance, P_.
-   * You can also calculate the lidar NIS, if desired.
+   * Use lidar data to update the belief
    */
+  Eigen::VectorXd predicted_measurements = Eigen::VectorXd(lidar_n_z);
+  Eigen::MatrixXd S = Eigen::MatrixXd(lidar_n_z, lidar_n_z);
+  Eigen::MatrixXd measurement_sigma_points = Eigen::MatrixXd(lidar_n_z, 2 * n_aug_ + 1);
+
+  PredictLidarMeasurement(measurement_sigma_points, predicted_measurements, S);
+
+  // create matrix for cross correlation Tc
+  MatrixXd Tc = MatrixXd(n_x_, lidar_n_z);
+
+  // calculate cross correlation matrix
+  Tc.fill(0.0);
+  for (int i = 0; i < (2 * n_aug_ + 1); ++i) {  // 2n+1 simga points
+    // residual
+    VectorXd z_diff = measurement_sigma_points.col(i) - predicted_measurements;
+
+    // state difference
+    Eigen::VectorXd predicted_x = VectorXd(n_x_);
+    predicted_x = state_sigma_points_.col(i).segment(0, 5);
+    VectorXd x_diff = predicted_x - x_;
+
+    Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
+  }
+
+  // Kalman gain K;
+  MatrixXd K = Tc * S.inverse();
+
+  // residual
+  VectorXd z_diff = meas_package.raw_measurements_ - predicted_measurements;
+
+  // update state mean and covariance matrix
+  x_ = x_ + K * z_diff;
+  P_ = P_ - K * S * K.transpose();
+
+  // In case we get unrealistic values due to numerical issues,
+  // reset entire estimation and restart initialization
+  for (int idx = 0; idx < n_x_; ++idx){
+    if (std::isinf(x_(idx)) || std::isnan(x_(idx)) || std::abs(x_(idx)) > 1000 ){
+      x_.fill(0.0);
+      P_.fill(0.1);
+      is_initialized_ = false;
+      std::cout << "Lidar: Restart initialization due to numerical issues in state mean after measurement update" << std::endl;
+      return;
+    }
+    if (P_(idx, idx) > 1000 ){
+      x_.fill(0.0);
+      P_.fill(0.1);
+      is_initialized_ = false;
+      std::cout << "Lidar: Restart initialization due to numerical issues in state covariance after measurement update" << std::endl;
+      return;
+    }
+  }
 }
 
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
   /**
-   * TODO: Complete this function! Use radar data to update the belief
-   * about the object's position. Modify the state vector, x_, and
-   * covariance, P_.
-   * You can also calculate the radar NIS, if desired.
+   * Use radar data to update the belief
    */
   Eigen::VectorXd predicted_measurements = Eigen::VectorXd(radar_n_z);
   Eigen::MatrixXd S = Eigen::MatrixXd(radar_n_z, radar_n_z);
@@ -309,14 +382,14 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
       x_.fill(0.0);
       P_.fill(0.1);
       is_initialized_ = false;
-      std::cout << "Restart initialization due to numerical issues in state mean after measurement update" << std::endl;
+      std::cout << "Radar: Restart initialization due to numerical issues in state mean after measurement update" << std::endl;
       return;
     }
     if (P_(idx, idx) > 1000 ){
       x_.fill(0.0);
       P_.fill(0.1);
       is_initialized_ = false;
-      std::cout << "Restart initialization due to numerical issues in state covariance after measurement update" << std::endl;
+      std::cout << "Radar: Restart initialization due to numerical issues in state covariance after measurement update" << std::endl;
       return;
     }
   }
@@ -373,5 +446,39 @@ void UKF::PredictRadarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eig
   R <<  std_radr_*std_radr_, 0, 0,
       0, std_radphi_*std_radphi_, 0,
       0, 0,std_radrd_*std_radrd_;
+  S = S + R;
+}
+
+
+void UKF::PredictLidarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S){
+
+  // transform (2n+1) predicted sigma points from state space into the measurement space
+  for (int idx = 0; idx < (2 * n_aug_ + 1); ++idx) {
+    // extract values for better readability
+    double long_pos_sp = state_sigma_points_(0, idx);
+    double lat_pos_sp = state_sigma_points_(1, idx);
+
+    // create measurement model
+    measurement_sigma_points(0, idx) = long_pos_sp;
+    measurement_sigma_points(1, idx) = lat_pos_sp;
+  }
+
+  // predicted mean z(k+1) in the measurement space
+  predicted_measurements.fill(0.0);
+  for (int i=0; i < (2 * n_aug_ + 1); ++i) {
+    predicted_measurements = predicted_measurements + weights_(i) * measurement_sigma_points.col(i);
+  }
+
+  // predicted covariance in the measurement space --> innovation covariance matrix S(k+1)
+  S.fill(0.0);
+  for (int i = 0; i < (2 * n_aug_ + 1); ++i) {
+    VectorXd z_diff = measurement_sigma_points.col(i) - predicted_measurements;
+    S = S + weights_(i) * z_diff * z_diff.transpose();
+  }
+
+  // add measurement noise to innovation covariance matrix
+  Eigen::MatrixXd R = Eigen::MatrixXd(lidar_n_z, lidar_n_z);
+  R <<  std_laspx_*std_laspx_, 0,
+        0, std_laspy_*std_laspy_;
   S = S + R;
 }

@@ -59,12 +59,20 @@ class UKF {
   void PredictGaussian();
 
   /**
-   * Convert predicted Gaussian from state space into measurement space
-   * @param measurement_sigma_points: matrix storing the sigma points in the measurement space
-   * @param predicted_measurements: vector containing predicted Gaussian in the measurement space
+   * Convert predicted Gaussian from state space into the radar measurement space
+   * @param measurement_sigma_points: matrix storing the sigma points in the radar measurement space
+   * @param predicted_measurements: vector containing predicted Gaussian in the radar measurement space
    * @param S: Innovation covariance matrix
    */
   void PredictRadarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S);
+
+  /**
+ * Convert predicted Gaussian from state space into the Lidar measurement space
+ * @param measurement_sigma_points: matrix storing the sigma points in the lidar measurement space
+ * @param predicted_measurements: vector containing predicted Gaussian in the lidar measurement space
+ * @param S: Innovation covariance matrix
+ */
+  void PredictLidarMeasurement(Eigen::MatrixXd& measurement_sigma_points, Eigen::VectorXd& predicted_measurements, Eigen::MatrixXd& S);
 
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
